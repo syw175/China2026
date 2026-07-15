@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Family China Trip · 家庭中国之旅</title>
+<meta name="theme-color" content="#efe7d6">
+<style>
+:root{
+  --paper:#f6f0e4; --paper2:#efe7d6; --card:#fdfaf3; --ink:#2b2722;
+  --muted:#8c8375; --rule:#d8cdb7; --terra:#b1462c; --jade:#3d6b5a; --gold:#a8792f;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Songti SC","STSong",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"PingFang SC","Microsoft YaHei",sans-serif;
+  --nav-h:96px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(rgba(120,100,60,.045) 1px,transparent 1px);background-size:4px 4px}
+button{font-family:inherit;cursor:pointer;color:inherit}
+a{color:var(--terra);text-decoration:none}
+.zh{color:var(--muted);font-weight:400}
+.eyebrow{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--terra)}
+.ic{width:1em;height:1em;vertical-align:-.13em}
+.wrap{max-width:760px;margin:0 auto;padding:0 22px}
+
+/* masthead (compact, scrolls away) */
+.masthead{background:linear-gradient(180deg,var(--paper2),var(--paper));text-align:center;padding:11px 22px 12px}
+.mast-kicker{font-family:var(--sans);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.mast-mid{max-width:760px;margin:0 auto}
+.mast-mid h1{margin:5px 0 0;font-size:clamp(22px,5.4vw,36px);font-weight:700;letter-spacing:-.4px;line-height:1.06}
+.mast-mid h1 .zh{font-size:.5em;letter-spacing:.12em;color:var(--ink);opacity:.5;margin-left:.35em;font-weight:400}
+.mast-sub{font-family:var(--sans);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:7px}
+.mast-sub .dot{color:var(--terra);margin:0 6px}
+/* language toggle (lives in the sticky bar) */
+.lang-t{display:inline-flex;gap:1px;align-items:center;flex:none}
+.lang-t button{border:0;background:transparent;font-family:var(--sans);font-size:10.5px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);padding:7px 8px;border-radius:4px;min-height:34px}
+.lang-t button.on{color:var(--terra);font-weight:800;text-decoration:underline;text-underline-offset:3px}
+
+/* sticky sub-nav: city tabs + lang + day pills */
+.subnav{position:sticky;top:0;z-index:40;background:rgba(244,238,225,.9);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);transition:box-shadow .2s}
+.subnav.scrolled{box-shadow:0 10px 24px -16px rgba(43,39,34,.5)}
+.subnav-in{max-width:760px;margin:0 auto}
+.tabs-row{position:relative;display:flex;align-items:center;justify-content:space-between;gap:6px;
+  padding:0 6px 0 10px;border-bottom:1px solid var(--rule)}
+.city-tabs{display:flex;gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.city-tabs::-webkit-scrollbar{display:none}
+.city-tabs button{flex:0 0 auto;border:0;background:transparent;font-family:var(--serif);font-size:16px;
+  font-weight:600;color:var(--muted);padding:11px 12px;position:relative;line-height:1.1;min-height:44px}
+.city-tabs button.on{color:var(--ink)}
+.city-tabs button.on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2.5px;
+  background:var(--terra);border-radius:2px}
+.day-pills{display:flex;gap:8px;overflow-x:auto;padding:9px 14px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.day-pills::-webkit-scrollbar{display:none}
+.pill-day{flex:0 0 auto;border:1px solid var(--rule);border-radius:24px;background:var(--card);
+  padding:5px 14px 5px 11px;display:flex;align-items:center;gap:9px;min-height:42px;transition:.15s}
+.pill-day .pd-n{font-family:var(--serif);font-size:19px;font-weight:700;line-height:1;font-style:italic}
+.pill-day .pd-meta{display:flex;flex-direction:column;line-height:1.1;text-align:left}
+.pill-day .pd-w{font-family:var(--sans);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.pill-day .pd-d{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--ink);letter-spacing:.01em}
+.pill-day.on{background:var(--terra);border-color:var(--terra)}
+.pill-day.on .pd-n,.pill-day.on .pd-d{color:#fff}
+.pill-day.on .pd-w{color:rgba(255,255,255,.8)}
+
+/* city cover */
+.cover{text-align:center;padding:30px 22px 10px}
+.cover .c-en{font-size:clamp(38px,10.5vw,64px);font-weight:700;line-height:.98;letter-spacing:-1px;margin:0;overflow-wrap:break-word}
+.cover .c-zh{font-size:clamp(20px,5.4vw,30px);letter-spacing:.4em;color:var(--terra);margin:8px 0 0}
+.cover .c-meta{font-family:var(--sans);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:14px}
+.hotel-card{display:block;width:100%;text-align:left;max-width:520px;margin:18px auto 0;border:1px solid var(--rule);
+  background:var(--card);border-radius:9px;padding:13px 15px;cursor:pointer;font-family:inherit;
+  transition:border-color .15s,background .15s,box-shadow .15s}
+.hotel-card:active{background:#faf4e8}
+.hotel-card:hover{border-color:var(--terra);box-shadow:0 8px 22px -16px rgba(43,39,34,.5)}
+.hc-label{font-family:var(--sans);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:7px}
+.hc-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hc-name{font-size:18px;font-weight:600;line-height:1.2}
+.hc-sub{font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:6px}
+.hc-sub .ic{font-size:13px;color:var(--terra)}
+.hc-go{flex:none;color:var(--terra);opacity:.6;display:flex;transition:transform .15s,opacity .15s}
+.hc-go .ic{font-size:22px}
+.hotel-card:hover .hc-go{opacity:1;transform:translateX(3px)}
+.addr{font-family:var(--sans);font-size:13px;color:var(--terra);display:inline-flex;gap:5px;align-items:center}
+.addr .ic{font-size:14px;flex:none;color:var(--terra)}
+
+/* taste spread */
+.taste{margin:32px 0 8px;padding:24px 0;border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);
+  background:linear-gradient(180deg,rgba(177,70,44,.05),transparent)}
+.taste .t-head{text-align:center;margin-bottom:20px}
+.taste .t-head h2{font-size:clamp(24px,6vw,32px);font-weight:700;margin:6px 0 0;font-style:italic}
+.taste-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px 24px}
+.dish{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.dish .d-ic{flex:0 0 38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;
+  background:radial-gradient(circle at 35% 30%,#c96a3f,#a8401f);font-size:18px}
+.dish .d-n{font-size:16px;font-weight:600;line-height:1.2}
+.dish .d-note{font-family:var(--sans);font-size:11.5px;color:var(--muted);margin-top:2px}
+
+/* day sections */
+.day{padding:28px 0 6px;border-top:1px solid var(--rule);scroll-margin-top:var(--nav-h)}
+.day:first-of-type{border-top:0;padding-top:22px}
+.day-head{margin:0 0 14px}
+.dh-row{display:flex;align-items:center;gap:10px}
+.dh-tag{font-family:var(--sans);font-weight:800;font-size:11px;letter-spacing:.06em;color:#fff;background:var(--ink);
+  padding:3px 9px;border-radius:3px}
+.day-head h3{font-size:24px;font-weight:700;margin:9px 0 0;font-style:italic;line-height:1.12}
+.entry{display:grid;grid-template-columns:52px 1fr 22px;gap:14px;align-items:start;padding:15px 4px;
+  border-top:1px solid var(--rule);cursor:pointer;position:relative;transition:background .15s;border-radius:6px}
+.entry:first-of-type{border-top:0}
+.entry:active{background:rgba(177,70,44,.06)}
+.entry .e-time{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--terra);letter-spacing:.02em;
+  padding-top:3px;font-variant-numeric:tabular-nums}
+.entry .e-time .e-type{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:5px}
+.entry .e-name{font-size:20px;font-weight:600;line-height:1.25;transition:color .15s}
+.entry .e-hood{font-family:var(--sans);font-size:12px;letter-spacing:.04em;color:var(--muted);text-transform:uppercase;margin-top:3px}
+.entry .e-foot{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.entry .e-go{align-self:center;color:var(--terra);opacity:.5;display:flex;justify-content:flex-end;
+  transition:transform .15s,opacity .15s}
+.entry .e-go .ic{font-size:19px}
+.entry:hover .e-name{color:var(--terra)}
+.entry:hover .e-go{opacity:1;transform:translateX(3px)}
+.tag{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:2px}
+.tag.book{color:#fff;background:var(--terra)}
+.tag.book .ic{font-size:12px}
+.day-end{text-align:center;padding:22px 0 8px;color:var(--muted);font-family:var(--sans);font-size:11px;
+  letter-spacing:.2em;text-transform:uppercase}
+.day-end::before{content:"";display:block;width:34px;height:1px;background:var(--rule);margin:0 auto 12px}
+
+/* reader overlay */
+.reader{position:fixed;inset:0;z-index:60;background:var(--paper);overflow-y:auto;
+  transform:translateX(100%);transition:transform .36s cubic-bezier(.32,.72,0,1);
+  background-image:radial-gradient(rgba(120,100,60,.045) 1px,transparent 1px);background-size:4px 4px}
+.reader.open{transform:translateX(0)}
+.rd-bar{position:sticky;top:0;background:rgba(246,240,228,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);z-index:2}
+.rd-bar-in{max-width:760px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;justify-content:space-between}
+.rd-close{border:0;background:transparent;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink);display:inline-flex;align-items:center;gap:6px;min-height:40px}
+.rd-close .ic{font-size:15px;transform:rotate(180deg)}
+.rd-hero{height:220px;display:flex;align-items:flex-end;color:#fff;position:relative;overflow:hidden}
+.rd-hero .rh-mono{position:absolute;right:18px;top:14px;font-size:92px;opacity:.28}
+.rd-hero .rh-in{max-width:760px;margin:0 auto;padding:20px 22px;width:100%;position:relative}
+.rd-hero .rh-eye{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.92}
+.rd-hero h1{font-size:clamp(28px,7vw,42px);font-weight:700;margin:8px 0 0;line-height:1.06;text-shadow:0 2px 16px rgba(0,0,0,.28)}
+.rd-hero h1 .zh{color:rgba(255,255,255,.85)}
+.rd-body{max-width:640px;margin:0 auto;padding:24px 22px 80px}
+.rd-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding-bottom:18px;margin-bottom:8px;border-bottom:1px solid var(--rule)}
+.rd-meta .m-item{font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.03em;color:var(--muted);display:inline-flex;align-items:center;gap:5px}
+.rd-body p.lead{font-size:19px;line-height:1.6}
+.rd-body p.lead::first-letter{font-size:3.1em;float:left;line-height:.72;padding:6px 10px 0 0;font-weight:700;color:var(--terra)}
+.rd-addr{margin:20px 0;padding:14px 16px;background:var(--card);border:1px solid var(--rule);border-radius:4px}
+.rd-addr .ra-label{font-family:var(--sans);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.rd-addr .addr{font-size:15px}
+.around{margin-top:32px;padding-top:12px;border-top:2px solid var(--ink)}
+.around h2{font-size:23px;font-weight:700;font-style:italic;margin:14px 0 2px}
+.around .a-hint{font-family:var(--sans);font-size:13px;color:var(--muted);margin:0 0 14px}
+.a-item{display:flex;gap:13px;padding:13px 2px;border-bottom:1px solid var(--rule);align-items:center;
+  text-decoration:none;color:inherit;cursor:pointer;border-radius:6px;transition:background .15s}
+.a-item:last-child{border-bottom:0}
+.a-item:active{background:rgba(177,70,44,.06)}
+.a-item .a-ic{flex:0 0 24px;color:var(--jade);font-size:18px;line-height:1;align-self:flex-start;padding-top:2px}
+.a-item .a-main{flex:1;min-width:0}
+.a-item .a-n{display:block;font-size:17px;font-weight:600;color:var(--ink)}
+.a-item .a-note{display:block;font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:2px}
+.a-nav{flex:none;display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-size:11px;
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--terra);
+  border:1px solid var(--terra);border-radius:22px;padding:7px 12px;white-space:nowrap;transition:.15s}
+.a-nav .ic{font-size:14px}
+.a-item:hover .a-nav,.a-item:active .a-nav{background:var(--terra);color:#fff}
+
+/* hotel drill-in */
+.hot-actions{display:flex;flex-direction:column;gap:10px;margin:2px 0 8px}
+.hot-btn{display:flex;align-items:center;gap:13px;padding:13px 15px;border:1px solid var(--rule);border-radius:7px;
+  background:var(--card);font-family:var(--sans);font-size:15px;color:var(--ink);transition:border-color .15s,background .15s}
+.hot-btn:hover{border-color:var(--terra)} .hot-btn:active{background:#faf4e8}
+.hot-btn .ic{font-size:20px;color:var(--terra);flex:none}
+.hot-btn .hb-k{display:block;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;font-weight:700}
+.hot-btn .hb-v{font-weight:600}
+.hot-block{padding:16px 0;border-top:1px solid var(--rule)}
+.hot-block:first-of-type{border-top:0}
+.hot-block .hb-h{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink);display:flex;align-items:center;gap:8px}
+.hot-block .hb-h .ic{font-size:16px;color:var(--terra)}
+.hot-block p{font-size:16px;margin:9px 0 0;line-height:1.55}
+.hot-notes{margin-top:10px;padding-top:14px;border-top:2px solid var(--ink)}
+.hot-notes .hn-list{margin-top:10px}
+.hot-note{display:flex;gap:10px;align-items:baseline;font-family:var(--sans);font-size:14px;padding:9px 0;color:var(--ink);border-bottom:1px solid var(--rule)}
+.hot-note:last-child{border-bottom:0}
+.hot-note::before{content:"◆";color:var(--terra);font-size:8px;flex:none;position:relative;top:-1px}
+
+@media (max-width:560px){ .taste-grid{grid-template-columns:1fr} .entry{grid-template-columns:48px 1fr 20px;gap:12px} }
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .reader{transition:none} }
+</style>
+<div id="app">
+  <header class="masthead">
+    <div class="mast-mid">
+      <div class="mast-kicker">The Travel Companion · 旅行手册</div>
+      <h1></h1>
+      <div class="mast-sub"></div>
+    </div>
+  </header>
+  <nav class="subnav" id="subnav"><div class="subnav-in">
+    <div class="tabs-row">
+      <div class="city-tabs" id="city-tabs"></div>
+      <span class="lang-t"><button data-lang="en">EN</button><button data-lang="zh">中文</button></span>
+    </div>
+    <div class="day-pills" id="day-pills"></div>
+  </div></nav>
+  <main id="main"></main>
+</div>
+<div class="reader" id="reader" role="dialog" aria-modal="true">
+  <div class="rd-bar"><div class="rd-bar-in">
+    <button class="rd-close" id="reader-close"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.5l6.5 6.5L9 18.5"/></svg><span>Close · 关闭</span></button>
+    <span class="eyebrow">Field Notes · 手记</span>
+  </div></div>
+  <div id="reader-body"></div>
+</div>
+<script>const TRIP={"title":{"en":"Family China Trip","zh":"家庭中国之旅"},"dates":{"en":"Jul 26 – Aug 6, 2026","zh":"2026 年 7 月 26 日 – 8 月 6 日"},"cities":[{"id":"gz","name":{"en":"Guangzhou","zh":"广州"},"dateRange":"Jul 26 – 29","hotel":{"name":{"en":"Riverside Hotel","zh":"江畔酒店"},"address":{"text":"88 Riverside Rd  江滨路 88 号","mapUrl":"https://maps.apple.com/?q=Riverside%20Hotel%20Guangzhou"},"phone":"+86 20 8888 6666","confirmation":"RVS-88231","checkIn":{"time":"15:00","note":{"en":"Check in at the Level 1 front desk — please have every guest’s passport ready.","zh":"请于一楼前台办理入住，并备好每位客人的护照。"}},"checkOut":{"time":"12:00","note":{"en":"Free luggage storage available after checkout.","zh":"退房后可免费寄存行李。"}},"wifi":{"en":"Free Wi-Fi · network “Riverside-Guest”, no password","zh":"免费 Wi-Fi · 网络“Riverside-Guest”，无需密码"},"notes":[{"en":"Breakfast buffet 7:00–10:00, Level 2","zh":"自助早餐 7:00–10:00，二楼"},{"en":"24-hour front desk & concierge","zh":"24 小时前台与礼宾服务"}]},"mustEats":[{"name":{"en":"Morning Dim Sum","zh":"早茶点心"},"note":{"en":"Shrimp dumplings & buns","zh":"虾饺与包点"}},{"name":{"en":"Wonton Noodles","zh":"云吞面"},"note":{"en":"Springy egg noodles","zh":"弹牙鸡蛋面"}},{"name":{"en":"Roast Goose","zh":"烧鹅"},"note":{"en":"Crispy skin classic","zh":"脆皮经典"}},{"name":{"en":"Rice Noodle Rolls","zh":"肠粉"},"note":{"en":"Silky steamed rolls","zh":"滑嫩蒸卷"}},{"name":{"en":"Double-skin Milk","zh":"双皮奶"},"note":{"en":"Warm milk custard","zh":"温热奶羹"}},{"name":{"en":"Char Siu","zh":"叉烧"},"note":{"en":"Honey-glazed pork","zh":"蜜汁叉烧"}},{"name":{"en":"Claypot Rice","zh":"煲仔饭"},"note":{"en":"Sizzling rice with cured meats","zh":"腊味煲仔饭，锅巴香脆"}}],"days":[{"date":"Jul 26","dayLabel":"Sat","title":{"en":"Arrival & Old Town","zh":"抵达与老城"},"items":[{"id":"x1","time":"14:00","type":"transit","name":{"en":"Hotel Check-in","zh":"酒店入住"},"neighborhood":{"en":"Riverside","zh":"江畔"},"address":{"text":"Riverside Rd  江滨路","mapUrl":"https://maps.apple.com/?q=Hotel%20Check-in%20Riverside%20Rd"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]},{"id":"x2","time":"16:30","type":"sight","name":{"en":"Old Town Stroll","zh":"老城漫步"},"neighborhood":{"en":"Old Town","zh":"老城区"},"address":{"text":"Heritage Lane  老街","mapUrl":"https://maps.apple.com/?q=Old%20Town%20Stroll%20Heritage%20Lane"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x3","time":"19:00","type":"meal","name":{"en":"Welcome Dinner","zh":"接风晚餐"},"neighborhood":{"en":"Old Town","zh":"老城区"},"address":{"text":"12 Food St  美食街 12 号","mapUrl":"https://maps.apple.com/?q=Welcome%20Dinner%2012%20Food%20St"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]}]},{"date":"Jul 27","dayLabel":"Sun","title":{"en":"Riverside & Markets","zh":"江畔与市集"},"items":[{"id":"x4","time":"09:00","type":"meal","name":{"en":"Morning Tea","zh":"早茶"},"neighborhood":{"en":"Downtown","zh":"市中心"},"address":{"text":"3 Teahouse Rd  茶楼路 3 号","mapUrl":"https://maps.apple.com/?q=Morning%20Tea%203%20Teahouse%20Rd"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]},{"id":"x5","time":"11:00","type":"activity","name":{"en":"Local Market","zh":"本地市集"},"neighborhood":{"en":"Downtown","zh":"市中心"},"address":{"text":"Market Sq  市集广场","mapUrl":"https://maps.apple.com/?q=Local%20Market%20Market%20Sq"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]},{"id":"x6","time":"15:00","type":"sight","name":{"en":"Canton Tower Area","zh":"广州塔周边"},"neighborhood":{"en":"Riverside","zh":"江畔"},"address":{"text":"Tower Plaza  塔前广场","mapUrl":"https://maps.apple.com/?q=Canton%20Tower%20Area%20Tower%20Plaza"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x7","time":"20:00","type":"activity","name":{"en":"River Night Cruise","zh":"珠江夜游"},"neighborhood":{"en":"Riverside","zh":"江畔"},"address":{"text":"Ferry Pier  渡轮码头","mapUrl":"https://maps.apple.com/?q=River%20Night%20Cruise%20Ferry%20Pier"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]}]},{"date":"Jul 28","dayLabel":"Mon","title":{"en":"Temples & Tea","zh":"寺庙与茶"},"items":[{"id":"x8","time":"09:30","type":"sight","name":{"en":"Historic Temple","zh":"历史寺庙"},"neighborhood":{"en":"West District","zh":"西区"},"address":{"text":"Temple Rd  寺庙路","mapUrl":"https://maps.apple.com/?q=Historic%20Temple%20Temple%20Rd"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x9","time":"12:30","type":"meal","name":{"en":"Dim Sum Lunch","zh":"点心午餐"},"neighborhood":{"en":"West District","zh":"西区"},"address":{"text":"9 Garden Rd  花园路 9 号","mapUrl":"https://maps.apple.com/?q=Dim%20Sum%20Lunch%209%20Garden%20Rd"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]},{"id":"x10","time":"16:00","type":"activity","name":{"en":"Art District","zh":"艺术区"},"neighborhood":{"en":"North","zh":"北区"},"address":{"text":"Creative Park  创意园","mapUrl":"https://maps.apple.com/?q=Art%20District%20Creative%20Park"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]}]},{"date":"Jul 29","dayLabel":"Tue","title":{"en":"Departure to Shanghai","zh":"前往上海"},"items":[{"id":"x11","time":"09:00","type":"meal","name":{"en":"Farewell Breakfast","zh":"告别早餐"},"neighborhood":{"en":"Riverside","zh":"江畔"},"address":{"text":"Hotel Cafe  酒店咖啡厅","mapUrl":"https://maps.apple.com/?q=Farewell%20Breakfast%20Hotel%20Cafe"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x12","time":"12:00","type":"transit","name":{"en":"High-speed Rail","zh":"高铁"},"neighborhood":{"en":"Station","zh":"车站"},"address":{"text":"South Station  南站","mapUrl":"https://maps.apple.com/?q=High-speed%20Rail%20South%20Station"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]}]}]},{"id":"sh","name":{"en":"Shanghai","zh":"上海"},"dateRange":"Jul 29 – Aug 2","hotel":{"name":{"en":"The Bund Hotel","zh":"外滩酒店"},"address":{"text":"1 Bund Ave  外滩大道 1 号","mapUrl":"https://maps.apple.com/?q=The%20Bund%20Hotel%20Shanghai"},"phone":"+86 21 6000 1888","confirmation":"BND-45102","checkIn":{"time":"14:00","note":{"en":"Front desk is in the 3rd-floor lobby, overlooking the river.","zh":"前台位于三楼大堂，可俯瞰江景。"}},"checkOut":{"time":"12:00","note":{"en":"Late checkout until 14:00 on request.","zh":"可申请延迟退房至 14:00。"}},"wifi":{"en":"Free Wi-Fi · “Bund-Guest” · password on your key card","zh":"免费 Wi-Fi · “Bund-Guest” · 密码见房卡"},"notes":[{"en":"Rooftop breakfast 7:00–10:30","zh":"天台早餐 7:00–10:30"},{"en":"Gym & pool on Level 5","zh":"健身房与泳池位于五楼"}]},"mustEats":[{"name":{"en":"Xiaolongbao","zh":"小笼包"},"note":{"en":"Soup dumplings","zh":"汤汁小笼"}},{"name":{"en":"Pan-fried Buns","zh":"生煎包"},"note":{"en":"Crispy bottoms","zh":"脆底多汁"}},{"name":{"en":"Red-braised Pork","zh":"红烧肉"},"note":{"en":"Sweet & savory","zh":"浓油赤酱"}},{"name":{"en":"Scallion Oil Noodles","zh":"葱油拌面"},"note":{"en":"Simple & fragrant","zh":"香气扑鼻"}},{"name":{"en":"Hairy Crab","zh":"大闸蟹"},"note":{"en":"Seasonal treat","zh":"应季美味"}},{"name":{"en":"Shanghai Wontons","zh":"上海馄饨"},"note":{"en":"Light & comforting","zh":"清淡暖胃"}},{"name":{"en":"Sweet-and-sour Ribs","zh":"糖醋小排"},"note":{"en":"Tangy Shanghai classic","zh":"本帮酸甜"}}],"days":[{"date":"Jul 29","dayLabel":"Tue","title":{"en":"Arrival & The Bund","zh":"抵达与外滩"},"items":[{"id":"x13","time":"16:00","type":"transit","name":{"en":"Hotel Check-in","zh":"酒店入住"},"neighborhood":{"en":"The Bund","zh":"外滩"},"address":{"text":"Bund Ave  外滩大道","mapUrl":"https://maps.apple.com/?q=Hotel%20Check-in%20Bund%20Ave"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]},{"id":"x14","time":"18:30","type":"sight","name":{"en":"Bund Waterfront","zh":"外滩滨江"},"neighborhood":{"en":"The Bund","zh":"外滩"},"address":{"text":"Riverfront  滨江大道","mapUrl":"https://maps.apple.com/?q=Bund%20Waterfront%20Riverfront"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x15","time":"20:00","type":"meal","name":{"en":"Riverside Dinner","zh":"滨江晚餐"},"neighborhood":{"en":"The Bund","zh":"外滩"},"address":{"text":"5 Bund Ave  外滩大道 5 号","mapUrl":"https://maps.apple.com/?q=Riverside%20Dinner%205%20Bund%20Ave"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]}]},{"date":"Jul 30","dayLabel":"Wed","title":{"en":"Old City & Gardens","zh":"老城与园林"},"items":[{"id":"x16","time":"09:30","type":"sight","name":{"en":"Classical Garden","zh":"古典园林"},"neighborhood":{"en":"Old City","zh":"老城厢"},"address":{"text":"Garden Rd  豫园路","mapUrl":"https://maps.apple.com/?q=Classical%20Garden%20Garden%20Rd"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x17","time":"12:00","type":"meal","name":{"en":"Soup Dumpling Lunch","zh":"小笼午餐"},"neighborhood":{"en":"Old City","zh":"老城厢"},"address":{"text":"Bridge St  九曲桥","mapUrl":"https://maps.apple.com/?q=Soup%20Dumpling%20Lunch%20Bridge%20St"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]},{"id":"x18","time":"15:00","type":"activity","name":{"en":"Bazaar Shopping","zh":"老街购物"},"neighborhood":{"en":"Old City","zh":"老城厢"},"address":{"text":"Market Alley  商业街","mapUrl":"https://maps.apple.com/?q=Bazaar%20Shopping%20Market%20Alley"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]}]},{"date":"Jul 31","dayLabel":"Thu","title":{"en":"Modern Shanghai","zh":"现代上海"},"items":[{"id":"x19","time":"10:00","type":"sight","name":{"en":"Skyline Observation","zh":"天际观光"},"neighborhood":{"en":"Pudong","zh":"浦东"},"address":{"text":"Tower Deck  观光层","mapUrl":"https://maps.apple.com/?q=Skyline%20Observation%20Tower%20Deck"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x20","time":"13:00","type":"meal","name":{"en":"Rooftop Lunch","zh":"天台午餐"},"neighborhood":{"en":"Pudong","zh":"浦东"},"address":{"text":"88F  88 层","mapUrl":"https://maps.apple.com/?q=Rooftop%20Lunch%2088F"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]},{"id":"x21","time":"16:00","type":"activity","name":{"en":"Riverside Art Museum","zh":"滨江美术馆"},"neighborhood":{"en":"West Bund","zh":"西岸"},"address":{"text":"Art Ave  龙腾大道","mapUrl":"https://maps.apple.com/?q=Riverside%20Art%20Museum%20Art%20Ave"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]}]},{"date":"Aug 1","dayLabel":"Fri","title":{"en":"Lanes & Cafes","zh":"弄堂与咖啡"},"items":[{"id":"x22","time":"10:00","type":"activity","name":{"en":"Plane-tree Lanes","zh":"梧桐弄堂"},"neighborhood":{"en":"Former Concession","zh":"前租界"},"address":{"text":"Leafy St  法桐街","mapUrl":"https://maps.apple.com/?q=Plane-tree%20Lanes%20Leafy%20St"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]},{"id":"x23","time":"12:30","type":"meal","name":{"en":"Lane House Cafe","zh":"老洋房咖啡"},"neighborhood":{"en":"Former Concession","zh":"前租界"},"address":{"text":"Cafe Lane  咖啡弄","mapUrl":"https://maps.apple.com/?q=Lane%20House%20Cafe%20Cafe%20Lane"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x24","time":"19:30","type":"meal","name":{"en":"Farewell Feast","zh":"告别晚宴"},"neighborhood":{"en":"Downtown","zh":"市中心"},"address":{"text":"Grand Hall  宴会厅","mapUrl":"https://maps.apple.com/?q=Farewell%20Feast%20Grand%20Hall"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]}]},{"date":"Aug 2","dayLabel":"Sat","title":{"en":"Departure to Beijing","zh":"前往北京"},"items":[{"id":"x25","time":"10:00","type":"meal","name":{"en":"Quick Breakfast","zh":"简单早餐"},"neighborhood":{"en":"The Bund","zh":"外滩"},"address":{"text":"Hotel Cafe  酒店咖啡厅","mapUrl":"https://maps.apple.com/?q=Quick%20Breakfast%20Hotel%20Cafe"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]},{"id":"x26","time":"13:00","type":"transit","name":{"en":"High-speed Rail","zh":"高铁"},"neighborhood":{"en":"Station","zh":"车站"},"address":{"text":"Hongqiao  虹桥","mapUrl":"https://maps.apple.com/?q=High-speed%20Rail%20Hongqiao"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]}]}]},{"id":"bj","name":{"en":"Beijing","zh":"北京"},"dateRange":"Aug 2 – 6","hotel":{"name":{"en":"Courtyard Residence","zh":"四合院居"},"address":{"text":"6 Hutong Ln  胡同巷 6 号","mapUrl":"https://maps.apple.com/?q=Courtyard%20Residence%20Beijing"},"phone":"+86 10 6500 2333","confirmation":"CYD-77640","checkIn":{"time":"15:00","note":{"en":"Enter through the red courtyard gate; staff will meet you in the yard.","zh":"请从红色院门进入，工作人员将在院中迎接。"}},"checkOut":{"time":"11:00","note":{"en":"Airport transfer can be arranged at the front desk.","zh":"可在前台安排机场接送。"}},"wifi":{"en":"Free Wi-Fi · “Courtyard” · no password","zh":"免费 Wi-Fi · “Courtyard” · 无需密码"},"notes":[{"en":"Courtyard tea service 8:00–11:00","zh":"庭院茶点 8:00–11:00"},{"en":"Quiet hours after 22:00","zh":"22:00 后为安静时段"}]},"mustEats":[{"name":{"en":"Peking Duck","zh":"北京烤鸭"},"note":{"en":"Crisp & carved tableside","zh":"脆皮现片"}},{"name":{"en":"Zhajiangmian","zh":"炸酱面"},"note":{"en":"Savory bean-paste noodles","zh":"酱香拌面"}},{"name":{"en":"Jianbing","zh":"煎饼"},"note":{"en":"Breakfast crepe","zh":"街头早餐"}},{"name":{"en":"Copper-pot Hot Pot","zh":"铜锅涮肉"},"note":{"en":"Lamb & sesame sauce","zh":"涮羊配麻酱"}},{"name":{"en":"Douzhi","zh":"豆汁"},"note":{"en":"For the adventurous","zh":"老北京风味"}},{"name":{"en":"Candied Hawthorn","zh":"冰糖葫芦"},"note":{"en":"Sweet-tart skewer","zh":"酸甜串子"}},{"name":{"en":"Fried Liver Stew","zh":"炒肝"},"note":{"en":"Garlicky classic breakfast","zh":"蒜香浓稠，老北京早点"}}],"days":[{"date":"Aug 2","dayLabel":"Sat","title":{"en":"Arrival & Hutongs","zh":"抵达与胡同"},"items":[{"id":"x27","time":"17:00","type":"transit","name":{"en":"Hotel Check-in","zh":"酒店入住"},"neighborhood":{"en":"Hutong","zh":"胡同"},"address":{"text":"Hutong Ln  胡同巷","mapUrl":"https://maps.apple.com/?q=Hotel%20Check-in%20Hutong%20Ln"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]},{"id":"x28","time":"18:30","type":"activity","name":{"en":"Hutong Walk","zh":"胡同漫步"},"neighborhood":{"en":"Hutong","zh":"胡同"},"address":{"text":"Bell Tower Ln  钟楼巷","mapUrl":"https://maps.apple.com/?q=Hutong%20Walk%20Bell%20Tower%20Ln"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x29","time":"20:00","type":"meal","name":{"en":"Peking Duck Dinner","zh":"烤鸭晚餐"},"neighborhood":{"en":"Downtown","zh":"市中心"},"address":{"text":"2 Duck St  烤鸭街 2 号","mapUrl":"https://maps.apple.com/?q=Peking%20Duck%20Dinner%202%20Duck%20St"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]}]},{"date":"Aug 3","dayLabel":"Sun","title":{"en":"Imperial City","zh":"皇城"},"items":[{"id":"x30","time":"08:30","type":"sight","name":{"en":"Grand Square","zh":"中央广场"},"neighborhood":{"en":"City Center","zh":"市中心"},"address":{"text":"Central Sq  中央广场","mapUrl":"https://maps.apple.com/?q=Grand%20Square%20Central%20Sq"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]},{"id":"x31","time":"10:00","type":"sight","name":{"en":"Imperial Palace","zh":"故宫"},"neighborhood":{"en":"City Center","zh":"市中心"},"address":{"text":"Palace Gate  午门","mapUrl":"https://maps.apple.com/?q=Imperial%20Palace%20Palace%20Gate"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x32","time":"14:00","type":"meal","name":{"en":"Noodle Lunch","zh":"面食午餐"},"neighborhood":{"en":"City Center","zh":"市中心"},"address":{"text":"Old Noodle Rd  老面路","mapUrl":"https://maps.apple.com/?q=Noodle%20Lunch%20Old%20Noodle%20Rd"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]},{"id":"x33","time":"16:00","type":"sight","name":{"en":"Hilltop Park","zh":"景山公园"},"neighborhood":{"en":"City Center","zh":"市中心"},"address":{"text":"Park Gate  公园门","mapUrl":"https://maps.apple.com/?q=Hilltop%20Park%20Park%20Gate"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]}]},{"date":"Aug 4","dayLabel":"Mon","title":{"en":"The Great Wall","zh":"长城"},"items":[{"id":"x34","time":"08:00","type":"transit","name":{"en":"Drive to the Wall","zh":"前往长城"},"neighborhood":{"en":"Outskirts","zh":"郊区"},"address":{"text":"Mountain Rd  山路","mapUrl":"https://maps.apple.com/?q=Drive%20to%20the%20Wall%20Mountain%20Rd"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]},{"id":"x35","time":"10:00","type":"sight","name":{"en":"Great Wall Hike","zh":"长城徒步"},"neighborhood":{"en":"Outskirts","zh":"郊区"},"address":{"text":"Wall Gate  长城入口","mapUrl":"https://maps.apple.com/?q=Great%20Wall%20Hike%20Wall%20Gate"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]},{"id":"x36","time":"14:00","type":"meal","name":{"en":"Countryside Lunch","zh":"乡间午餐"},"neighborhood":{"en":"Outskirts","zh":"郊区"},"address":{"text":"Village Rd  村路","mapUrl":"https://maps.apple.com/?q=Countryside%20Lunch%20Village%20Rd"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]}]},{"date":"Aug 5","dayLabel":"Tue","title":{"en":"Temples & Markets","zh":"寺庙与市集"},"items":[{"id":"x37","time":"09:30","type":"sight","name":{"en":"Temple of Prayer","zh":"祈年寺庙"},"neighborhood":{"en":"South","zh":"南城"},"address":{"text":"Temple Park  天坛公园","mapUrl":"https://maps.apple.com/?q=Temple%20of%20Prayer%20Temple%20Park"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x38","time":"12:30","type":"meal","name":{"en":"Hot Pot Lunch","zh":"涮肉午餐"},"neighborhood":{"en":"Downtown","zh":"市中心"},"address":{"text":"Copper Ln  铜锅巷","mapUrl":"https://maps.apple.com/?q=Hot%20Pot%20Lunch%20Copper%20Ln"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"restaurant","name":{"en":"Street Food Stall","zh":"街头小吃"},"distance":"120 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Street%20Food%20Stall"},"note":{"en":"Cash only","zh":"仅收现金"}},{"type":"activity","name":{"en":"Craft Workshop","zh":"手工工坊"},"distance":"400 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Craft%20Workshop"},"note":{"en":"Drop-in classes","zh":"可现场体验"}},{"type":"sight","name":{"en":"View Terrace","zh":"观景露台"},"distance":"350 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=View%20Terrace"},"note":{"en":"Sunset views","zh":"日落美景"}}]},{"id":"x39","time":"18:00","type":"activity","name":{"en":"Night Market","zh":"夜市"},"neighborhood":{"en":"Downtown","zh":"市中心"},"address":{"text":"Snack St  小吃街","mapUrl":"https://maps.apple.com/?q=Night%20Market%20Snack%20St"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]}]},{"date":"Aug 6","dayLabel":"Wed","title":{"en":"Departure","zh":"返程"},"items":[{"id":"x40","time":"09:00","type":"meal","name":{"en":"Last Jianbing","zh":"最后的煎饼"},"neighborhood":{"en":"Hutong","zh":"胡同"},"address":{"text":"Corner Stall  街角摊","mapUrl":"https://maps.apple.com/?q=Last%20Jianbing%20Corner%20Stall"},"bookingRequired":false,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Hidden Garden","zh":"隐秘花园"},"distance":"250 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Hidden%20Garden"},"note":{"en":"Quiet courtyard","zh":"宁静庭院"}},{"type":"restaurant","name":{"en":"Tea & Dessert House","zh":"茶点屋"},"distance":"180 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Tea%20%26%20Dessert%20House"},"note":{"en":"Try the sweet soup","zh":"试试糖水"}}]},{"id":"x41","time":"12:00","type":"transit","name":{"en":"Airport Transfer","zh":"前往机场"},"neighborhood":{"en":"Airport","zh":"机场"},"address":{"text":"Terminal 3  T3 航站楼","mapUrl":"https://maps.apple.com/?q=Airport%20Transfer%20Terminal%203"},"bookingRequired":true,"desc":{"en":"A short placeholder description of this stop goes here — swap in your real notes later.","zh":"这里是该行程的占位描述，稍后可替换为你的真实备注。"},"nearby":[{"type":"sight","name":{"en":"Old Clock Tower","zh":"老钟楼"},"distance":"150 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Old%20Clock%20Tower"},"note":{"en":"Great photo spot","zh":"绝佳拍照点"}},{"type":"restaurant","name":{"en":"Corner Noodle Shop","zh":"转角面店"},"distance":"200 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Corner%20Noodle%20Shop"},"note":{"en":"Quick local bite","zh":"地道小吃"}},{"type":"activity","name":{"en":"Riverside Walk","zh":"沿江步道"},"distance":"300 m","address":{"text":"Nearby address 附近地址","mapUrl":"https://maps.apple.com/?q=Riverside%20Walk"},"note":{"en":"Easy 20-min stroll","zh":"轻松漫步 20 分钟"}}]}]}]}]};const I18N={"tripTitle":{"en":"Family China Trip","zh":"家庭中国之旅"},"subtitle":{"en":"3 cities · 12 days","zh":"3 座城市 · 12 天"},"schedule":{"en":"Schedule","zh":"行程"},"hotel":{"en":"Hotel","zh":"住宿"},"address":{"en":"Address","zh":"地址"},"openMaps":{"en":"Open in Maps","zh":"在地图中打开"},"booking":{"en":"Booking","zh":"需预订"},"bookingRequired":{"en":"Booking required","zh":"需提前预订"},"noBooking":{"en":"Walk-in · no booking","zh":"无需预订"},"nearby":{"en":"Nearby","zh":"附近"},"nearbyHint":{"en":"Sights, food & things to do around here","zh":"周边的景点、美食与活动"},"mustEatTitle":{"en":"Taste of","zh":"风味"},"mustEat":{"en":"Must-eat","zh":"必吃"},"overview":{"en":"Overview","zh":"概览"},"about":{"en":"About this stop","zh":"关于此行程"},"type_activity":{"en":"Activity","zh":"活动"},"type_meal":{"en":"Food","zh":"美食"},"type_sight":{"en":"Sight","zh":"景点"},"type_transit":{"en":"Transit","zh":"交通"},"cat_sight":{"en":"Sight","zh":"景点"},"cat_restaurant":{"en":"Food","zh":"美食"},"cat_activity":{"en":"Activity","zh":"活动"},"close":{"en":"Close","zh":"关闭"},"today":{"en":"Days","zh":"每日行程"},"checkIn":{"en":"Check-in","zh":"入住"},"checkOut":{"en":"Check-out","zh":"退房"},"phone":{"en":"Phone","zh":"电话"},"wifi":{"en":"Wi-Fi","zh":"无线网络"},"confirmation":{"en":"Confirmation","zh":"确认号"},"stay":{"en":"Your stay","zh":"入住信息"},"goodToKnow":{"en":"Good to know","zh":"温馨提示"},"hotelDetails":{"en":"Hotel details","zh":"酒店详情"},"directions":{"en":"Directions","zh":"导航"}};
+
+const state = { lang: 'en', city: 0, detail: null };
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function t(k){ const o = I18N[k]; return o ? o[state.lang] : k; }
+// bilingual name — EN mode shows "English 中文", 中文 mode shows Chinese only
+function nm(o){
+  if(!o) return '';
+  const en = esc(o.en||''), zh = esc(o.zh||'');
+  if(state.lang === 'zh') return zh || en;
+  if(zh && zh !== en) return en + '<span class="zh"> ' + zh + '</span>';
+  return en;
+}
+function nmText(o){ if(!o) return ''; return state.lang === 'zh' ? (o.zh||o.en||'') : (o.en||o.zh||''); }
+function tp(ty){ return t('type_'+ty); }
+function cat(ty){ return t('cat_'+ty); }
+
+const ICONS = {
+  activity: '<path d="M12 3l1.9 4.4L18 9l-4.1 1.6L12 15l-1.9-4.4L6 9l4.1-1.6L12 3Z"/>',
+  meal: '<path d="M6 3v5a2 2 0 0 0 4 0V3"/><path d="M8 8v13"/><path d="M17 3c-1.6 1-2.2 3-2.2 6s.2 4 2.2 4"/><path d="M17 3v18"/>',
+  sight: '<path d="M4 21h16"/><path d="M5.5 21v-8.5M9.5 21v-8.5M14.5 21v-8.5M18.5 21v-8.5"/><path d="M4 12.5h16L12 6 4 12.5Z"/>',
+  transit: '<rect x="6" y="3" width="12" height="13" rx="2.5"/><path d="M6 11h12"/><path d="M9.5 20l-2 2M14.5 20l2 2"/><circle cx="9" cy="13.5" r="1"/><circle cx="15" cy="13.5" r="1"/>',
+  pin: '<path d="M12 21s-6.5-5.2-6.5-10.5A6.5 6.5 0 0 1 18.5 10.5C18.5 15.8 12 21 12 21Z"/><circle cx="12" cy="10.3" r="2.4"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.2v5l3.2 1.9"/>',
+  cal: '<rect x="4" y="5.5" width="16" height="15" rx="2.5"/><path d="M4 10h16M8.5 3v4M15.5 3v4"/>',
+  chev: '<path d="M9 5.5l6.5 6.5L9 18.5"/>',
+  globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 2.6 14.6 0 17M12 3.5c-2.6 2.4-2.6 14.6 0 17"/>',
+  walk: '<circle cx="13" cy="4.5" r="1.6"/><path d="M11 21l1.5-5-2-2 1-5 3 2 2 1M9 21l2-6"/>',
+  phone: '<path d="M6.8 3.5c-1 0-1.9.8-1.9 1.9 0 8.1 6.6 14.7 14.7 14.7 1.1 0 1.9-.9 1.9-1.9v-2.5c0-.9-.7-1.7-1.6-1.8l-2.6-.3c-.5-.06-1.05.13-1.4.5l-1 1a12.5 12.5 0 0 1-5.1-5.1l1-1c.37-.36.56-.9.5-1.4l-.3-2.6c-.1-.9-.9-1.6-1.8-1.6Z"/>',
+  wifi: '<path d="M2.6 8.6a15 15 0 0 1 18.8 0M5.6 12.1a10 10 0 0 1 12.8 0M8.6 15.5a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19" r="1.1"/>',
+  nav: '<path d="M20.5 3.5 3.8 10.4c-.7.3-.6 1.3.1 1.5l6.7 1.9 1.9 6.7c.2.7 1.2.8 1.5.1L20.5 3.5Z"/><path d="M20.5 3.5 11 13"/>',
+};
+function icon(name, cls){ return '<svg class="ic '+(cls||'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[name]||'')+'</svg>'; }
+
+// A hyperlinked address that opens the maps URL in a new tab.
+function addrLink(a, cls){
+  if(!a) return '';
+  return '<a class="addr '+(cls||'')+'" href="'+esc(a.mapUrl)+'" target="_blank" rel="noopener">'
+    + icon('pin') + '<span>' + esc(a.text) + '</span></a>';
+}
+
+const city = () => TRIP.cities[state.city];
+
+let itemMap={};
+let daySections=[], dayPills=[], lastActive=-1, spyLock=0;
+const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+function heroGrad(ty){
+  return {activity:'linear-gradient(135deg,#7a5a86,#4a3358)',meal:'linear-gradient(135deg,#c96a3f,#8f2f1c)',
+    sight:'linear-gradient(135deg,#3f6b57,#274a3b)',transit:'linear-gradient(135deg,#5b6b7a,#33414d)'}[ty];
+}
+const subnav = ()=>document.getElementById('subnav');
+
+function renderMasthead(){
+  const h1=document.querySelector('.mast-mid h1');
+  h1.innerHTML = state.lang==='zh' ? esc(TRIP.title.zh) : (esc(TRIP.title.en)+'<span class="zh">'+esc(TRIP.title.zh)+'</span>');
+  document.querySelector('.mast-sub').innerHTML = esc(TRIP.dates[state.lang]) + '<span class="dot">◆</span>' + t('subtitle');
+  document.querySelectorAll('.lang-t button').forEach(b=>b.classList.toggle('on',b.dataset.lang===state.lang));
+}
+function renderNav(){
+  const c=city();
+  document.getElementById('city-tabs').innerHTML = TRIP.cities.map((ct,i)=>
+    '<button data-city="'+i+'" class="'+(i===state.city?'on':'')+'">'+nmText(ct.name)+'</button>').join('');
+  document.getElementById('day-pills').innerHTML = c.days.map((d,i)=>
+    '<button class="pill-day" data-day="'+i+'"><span class="pd-n">'+(i+1)+'</span>'
+    +'<span class="pd-meta"><span class="pd-w">'+esc(d.dayLabel)+'</span><span class="pd-d">'+esc(d.date)+'</span></span></button>').join('');
+  dayPills=[...document.querySelectorAll('.pill-day')];
+}
+function renderBody(){
+  const c=city(); itemMap={};
+  let h='<section class="cover">'
+    +'<h1 class="c-en">'+esc(state.lang==='zh'?c.name.zh:c.name.en)+'</h1>'
+    +(state.lang==='zh'?'':'<div class="c-zh">'+esc(c.name.zh)+'</div>')
+    +'<div class="c-meta">'+esc(c.dateRange)+'</div>'
+    +'<button class="hotel-card" data-hotel><span class="hc-label">'+t('hotel')+'</span>'
+      +'<div class="hc-row"><div><div class="hc-name">'+nm(c.hotel.name)+'</div>'
+      +'<div class="hc-sub">'+icon('cal')+t('checkIn')+' '+esc(c.hotel.checkIn.time)+' · '+t('checkOut')+' '+esc(c.hotel.checkOut.time)+'</div></div>'
+      +'<span class="hc-go">'+icon('chev')+'</span></div></button></section>';
+  h+='<section class="taste"><div class="wrap"><div class="t-head"><div class="eyebrow">'+t('mustEat')+'</div>'
+    +'<h2>'+t('mustEatTitle')+' '+nmText(c.name)+'</h2></div><div class="taste-grid">'
+    +c.mustEats.map(m=>'<div class="dish"><div class="d-ic">'+icon('meal')+'</div><div><div class="d-n">'+nm(m.name)+'</div><div class="d-note">'+nm(m.note)+'</div></div></div>').join('')
+    +'</div></div></section>';
+  h+='<div class="wrap">';
+  c.days.forEach((d,di)=>{
+    const dayTag = state.lang==='zh' ? ('第'+(di+1)+'天') : ('Day '+(di+1));
+    h+='<section class="day" data-dayidx="'+di+'"><div class="day-head"><div class="dh-row"><span class="dh-tag">'
+      +dayTag+'</span><span class="eyebrow">'+esc(d.date)+' · '+esc(d.dayLabel)+'</span></div>'
+      +'<h3>'+nm(d.title)+'</h3></div>';
+    h+=d.items.map(it=>{ itemMap[it.id]=it;
+      const book=it.bookingRequired?'<span class="tag book">'+icon('cal')+t('booking')+'</span>':'';
+      return '<article class="entry" data-item="'+it.id+'"><div class="e-time">'+esc(it.time)+'<span class="e-type">'+tp(it.type)+'</span></div>'
+        +'<div class="e-main"><div class="e-name">'+nm(it.name)+'</div><div class="e-hood">'+nmText(it.neighborhood)+'</div>'
+        +(book?'<div class="e-foot">'+book+'</div>':'')+'</div>'
+        +'<span class="e-go">'+icon('chev')+'</span></article>';
+    }).join('');
+    h+='</section>';
+  });
+  const endTxt = state.lang==='zh' ? (nmText(c.name)+' · 行程圆满') : ('End of '+nmText(c.name));
+  h+='<div class="day-end">'+endTxt+'</div></div>';
+  document.getElementById('main').innerHTML=h;
+  daySections=[...document.querySelectorAll('.day')];
+}
+function measureNav(){ document.documentElement.style.setProperty('--nav-h', (subnav().offsetHeight+4)+'px'); }
+
+function setActivePill(i){
+  if(i===lastActive) return; lastActive=i;
+  dayPills.forEach((p,k)=>p.classList.toggle('on',k===i));
+  const p=dayPills[i], sc=document.getElementById('day-pills');
+  if(p&&sc){ sc.scrollTo({left:Math.max(0,p.offsetLeft-(sc.clientWidth-p.offsetWidth)/2), behavior:reduce?'auto':'smooth'}); }
+}
+function updateSpy(){
+  if(!daySections.length) return;
+  const navH=subnav().offsetHeight, threshold=navH+40;
+  let active=0;
+  for(let i=0;i<daySections.length;i++){ if(daySections[i].getBoundingClientRect().top<=threshold) active=i; }
+  // near page bottom: the last (often short) day can't reach the top, so pin it active
+  if(window.innerHeight+window.scrollY >= document.documentElement.scrollHeight-2){ active=daySections.length-1; }
+  setActivePill(active);
+}
+let ticking=false;
+function onScroll(){
+  subnav().classList.toggle('scrolled', window.scrollY>6);
+  if(spyLock && Date.now()<spyLock) return;
+  if(!ticking){ requestAnimationFrame(()=>{ updateSpy(); ticking=false; }); ticking=true; }
+}
+function scrollToDay(i){
+  const s=daySections[i]; if(!s) return;
+  setActivePill(i); spyLock=Date.now()+ (reduce?0:520);
+  const y=s.getBoundingClientRect().top+window.scrollY - subnav().offsetHeight - 6;
+  window.scrollTo({top:Math.max(0,y), behavior:reduce?'auto':'smooth'});
+}
+
+function openHotel(){
+  const c=city(), ho=c.hotel; state.hotel=true; state.detail=null;
+  const tel='tel:'+ho.phone.replace(/[^+0-9]/g,'');
+  const notes=(ho.notes||[]).map(n=>'<div class="hot-note">'+nm(n)+'</div>').join('');
+  document.getElementById('reader-body').innerHTML=
+    '<div class="rd-hero" style="background:linear-gradient(135deg,#c88a3c,#93571f)"><span class="rh-mono">'+icon('pin')+'</span>'
+      +'<div class="rh-in"><div class="rh-eye">'+nmText(c.name)+' · '+t('stay')+'</div><h1>'+nm(ho.name)+'</h1></div></div>'
+    +'<div class="rd-body">'
+      +'<div class="rd-meta"><span class="m-item">'+icon('cal')+t('checkIn')+' '+esc(ho.checkIn.time)+'</span>'
+        +'<span class="m-item">'+icon('clock')+t('checkOut')+' '+esc(ho.checkOut.time)+'</span>'
+        +'<span class="m-item">'+t('confirmation')+' '+esc(ho.confirmation)+'</span></div>'
+      +'<div class="hot-actions">'
+        +'<a class="hot-btn" href="'+esc(tel)+'">'+icon('phone')+'<span><span class="hb-k">'+t('phone')+'</span><span class="hb-v">'+esc(ho.phone)+'</span></span></a>'
+        +'<a class="hot-btn" href="'+esc(ho.address.mapUrl)+'" target="_blank" rel="noopener">'+icon('pin')+'<span><span class="hb-k">'+t('address')+'</span><span class="hb-v">'+esc(ho.address.text)+'</span></span></a>'
+      +'</div>'
+      +'<div class="hot-block"><div class="hb-h">'+icon('cal')+t('checkIn')+' · '+esc(ho.checkIn.time)+'</div><p>'+nm(ho.checkIn.note)+'</p></div>'
+      +'<div class="hot-block"><div class="hb-h">'+icon('clock')+t('checkOut')+' · '+esc(ho.checkOut.time)+'</div><p>'+nm(ho.checkOut.note)+'</p></div>'
+      +'<div class="hot-block"><div class="hb-h">'+icon('wifi')+t('wifi')+'</div><p>'+nm(ho.wifi)+'</p></div>'
+      +'<div class="hot-notes"><div class="eyebrow">'+t('goodToKnow')+'</div><div class="hn-list">'+notes+'</div></div>'
+    +'</div>';
+  const r=document.getElementById('reader'); r.classList.add('open'); r.scrollTop=0; document.body.style.overflow='hidden';
+}
+function openDetail(id){
+  const it=itemMap[id]; if(!it) return; state.detail=id; state.hotel=false;
+  const book=it.bookingRequired?'<span class="m-item" style="color:var(--terra)">'+icon('cal')+t('bookingRequired')+'</span>'
+    :'<span class="m-item">'+t('noBooking')+'</span>';
+  const near=it.nearby.map(n=>'<a class="a-item" href="'+esc(n.address.mapUrl)+'" target="_blank" rel="noopener">'
+    +'<span class="a-ic">'+icon(n.type==='restaurant'?'meal':n.type)+'</span>'
+    +'<span class="a-main"><span class="a-n">'+nm(n.name)+'</span>'
+    +'<span class="a-note">'+cat(n.type)+' · '+nm(n.note)+'</span></span>'
+    +'<span class="a-nav">'+icon('nav')+'<span class="a-nav-t">'+t('directions')+'</span></span></a>').join('');
+  document.getElementById('reader-body').innerHTML=
+    '<div class="rd-hero" style="background:'+heroGrad(it.type)+'"><span class="rh-mono">'+icon(it.type)+'</span>'
+      +'<div class="rh-in"><div class="rh-eye">'+nmText(city().name)+' · '+tp(it.type)+'</div><h1>'+nm(it.name)+'</h1></div></div>'
+    +'<div class="rd-body"><div class="rd-meta"><span class="m-item">'+icon('clock')+esc(it.time)+'</span>'
+      +'<span class="m-item">'+icon('pin')+nmText(it.neighborhood)+'</span>'+book+'</div>'
+      +'<p class="lead">'+nm(it.desc)+'</p>'
+      +'<div class="rd-addr"><span class="ra-label">'+t('address')+'</span>'+addrLink(it.address)+'</div>'
+      +'<div class="around"><div class="eyebrow">'+t('nearby')+'</div><h2>'+t('nearbyHint')+'</h2>'+near+'</div></div>';
+  const r=document.getElementById('reader'); r.classList.add('open'); r.scrollTop=0;
+  document.body.style.overflow='hidden';
+}
+function closeDetail(){ state.detail=null; state.hotel=false; document.getElementById('reader').classList.remove('open'); document.body.style.overflow=''; }
+
+function render(){ renderMasthead(); renderNav(); renderBody(); requestAnimationFrame(()=>{ measureNav(); lastActive=-1; updateSpy(); }); }
+function switchCity(i){
+  state.city=i; render();
+  requestAnimationFrame(()=>{
+    const body=document.getElementById('main');
+    const y=body.getBoundingClientRect().top+window.scrollY - subnav().offsetHeight - 6;
+    window.scrollTo({top:Math.max(0,y), behavior:'auto'});
+    spyLock=0; lastActive=-1; updateSpy();
+  });
+}
+
+document.addEventListener('click',e=>{
+  const l=e.target.closest('[data-lang]'); if(l){ state.lang=l.dataset.lang; document.documentElement.lang=state.lang; const y=window.scrollY; const wasHotel=state.hotel, wasItem=state.detail; render(); requestAnimationFrame(()=>window.scrollTo({top:y,behavior:'auto'})); if(wasHotel) openHotel(); else if(wasItem) openDetail(wasItem); return; }
+  const c=e.target.closest('[data-city]'); if(c){ switchCity(+c.dataset.city); return; }
+  const d=e.target.closest('[data-day]'); if(d){ scrollToDay(+d.dataset.day); return; }
+  const hc=e.target.closest('[data-hotel]'); if(hc){ openHotel(); return; }
+  const it=e.target.closest('[data-item]'); if(it){ openDetail(it.dataset.item); return; }
+  if(e.target.closest('#reader-close')){ closeDetail(); return; }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&state.detail) closeDetail(); });
+window.addEventListener('scroll',onScroll,{passive:true});
+window.addEventListener('resize',()=>{ measureNav(); });
+render();
+</script>
+</body>
+</html>
