@@ -197,7 +197,17 @@ let daySections=[], dayPills=[], lastActive=-1, spyLock=0;
 const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 function heroGrad(ty){
   return {activity:'linear-gradient(135deg,#7a5a86,#4a3358)',meal:'linear-gradient(135deg,#c96a3f,#8f2f1c)',
-    sight:'linear-gradient(135deg,#3f6b57,#274a3b)',transit:'linear-gradient(135deg,#5b6b7a,#33414d)'}[ty];
+    sight:'linear-gradient(135deg,#3f6b57,#274a3b)',transit:'linear-gradient(135deg,#5b6b7a,#33414d)',
+    admin:'linear-gradient(135deg,#6b6257,#433c33)',shopping:'linear-gradient(135deg,#a8792f,#6f4c1a)',
+    wellness:'linear-gradient(135deg,#4f7d78,#2e504c)',show:'linear-gradient(135deg,#8a4a5e,#57293a)',
+    craft:'linear-gradient(135deg,#5a6b9a,#333f63)',rest:'linear-gradient(135deg,#7d7461,#4e4738)'}[ty];
+}
+function nearbyHTML(list){
+  return (list||[]).map(n=>'<a class="a-item" href="'+esc(n.address.mapUrl)+'" target="_blank" rel="noopener">'
+    +'<span class="a-ic">'+icon(n.type==='restaurant'?'meal':n.type)+'</span>'
+    +'<span class="a-main"><span class="a-n">'+nm(n.name)+'</span>'
+    +'<span class="a-note">'+cat(n.type)+' · '+nm(n.note)+'</span></span>'
+    +'<span class="a-nav">'+icon('nav')+'<span class="a-nav-t">'+t('directions')+'</span></span></a>').join('');
 }
 const subnav = ()=>document.getElementById('subnav');
 
@@ -238,7 +248,7 @@ function renderBody(){
       +'<h3>'+nm(d.title)+'</h3></div>';
     h+=d.items.map(it=>{ itemMap[it.id]=it;
       const book=it.bookingRequired?'<span class="tag book">'+icon('cal')+t('booking')+'</span>':'';
-      return '<article class="entry" data-item="'+it.id+'"><div class="e-time">'+esc(it.time)+'<span class="e-type">'+tp(it.type)+'</span></div>'
+      return '<article class="entry" data-item="'+it.id+'"><div class="e-time">'+esc(it.time).replace(/–/g,'–<wbr>')+'<span class="e-type">'+tp(it.type)+'</span></div>'
         +'<div class="e-main"><div class="e-name">'+nm(it.name)+'</div><div class="e-hood">'+nmText(it.neighborhood)+'</div>'
         +(book?'<div class="e-foot">'+book+'</div>':'')+'</div>'
         +'<span class="e-go">'+icon('chev')+'</span></article>';
@@ -299,6 +309,7 @@ function openHotel(){
       +'<div class="hot-block"><div class="hb-h">'+icon('clock')+t('checkOut')+' · '+esc(ho.checkOut.time)+'</div><p>'+nm(ho.checkOut.note)+'</p></div>'
       +'<div class="hot-block"><div class="hb-h">'+icon('wifi')+t('wifi')+'</div><p>'+nm(ho.wifi)+'</p></div>'
       +'<div class="hot-notes"><div class="eyebrow">'+t('goodToKnow')+'</div><div class="hn-list">'+notes+'</div></div>'
+      +(ho.nearby&&ho.nearby.length?'<div class="around"><div class="eyebrow">'+t('nearby')+'</div><h2>'+t('nearbyHotel')+'</h2>'+nearbyHTML(ho.nearby)+'</div>':'')
     +'</div>';
   const r=document.getElementById('reader'); r.classList.add('open'); r.scrollTop=0; document.body.style.overflow='hidden';
 }
@@ -306,11 +317,7 @@ function openDetail(id){
   const it=itemMap[id]; if(!it) return; state.detail=id; state.hotel=false;
   const book=it.bookingRequired?'<span class="m-item" style="color:var(--terra)">'+icon('cal')+t('bookingRequired')+'</span>'
     :'<span class="m-item">'+t('noBooking')+'</span>';
-  const near=it.nearby.map(n=>'<a class="a-item" href="'+esc(n.address.mapUrl)+'" target="_blank" rel="noopener">'
-    +'<span class="a-ic">'+icon(n.type==='restaurant'?'meal':n.type)+'</span>'
-    +'<span class="a-main"><span class="a-n">'+nm(n.name)+'</span>'
-    +'<span class="a-note">'+cat(n.type)+' · '+nm(n.note)+'</span></span>'
-    +'<span class="a-nav">'+icon('nav')+'<span class="a-nav-t">'+t('directions')+'</span></span></a>').join('');
+  const near=nearbyHTML(it.nearby);
   document.getElementById('reader-body').innerHTML=
     '<div class="rd-hero" style="background:'+heroGrad(it.type)+'"><span class="rh-mono">'+icon(it.type)+'</span>'
       +'<div class="rh-in"><div class="rh-eye">'+nmText(city().name)+' · '+tp(it.type)+'</div><h1>'+nm(it.name)+'</h1></div></div>'
@@ -318,7 +325,7 @@ function openDetail(id){
       +'<span class="m-item">'+icon('pin')+nmText(it.neighborhood)+'</span>'+book+'</div>'
       +'<p class="lead">'+nm(it.desc)+'</p>'
       +'<div class="rd-addr"><span class="ra-label">'+t('address')+'</span>'+addrLink(it.address)+'</div>'
-      +'<div class="around"><div class="eyebrow">'+t('nearby')+'</div><h2>'+t('nearbyHint')+'</h2>'+near+'</div></div>';
+      +(near?'<div class="around"><div class="eyebrow">'+t('nearby')+'</div><h2>'+t('nearbyHint')+'</h2>'+near+'</div>':'')+'</div>';
   const r=document.getElementById('reader'); r.classList.add('open'); r.scrollTop=0;
   document.body.style.overflow='hidden';
 }
