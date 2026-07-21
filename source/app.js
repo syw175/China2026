@@ -195,6 +195,15 @@ function photo(mod, cap, src){
 }
 function cityImg(id){ return 'images/' + id + '-city.webp'; }
 function dayImg(id, idx){ return 'images/' + id + '-' + (idx + 1) + '.webp'; }
+// Turn a phone string (one or "/"-separated numbers) into tappable tel: links,
+// keeping the display formatting; href strips to leading + and digits.
+function telLinks(str){
+  return String(str||'').split('/').map(function(p){
+    var disp = p.trim();
+    if(!disp) return '';
+    return '<a class="gr-tel" href="tel:' + esc(disp.replace(/[^+\\d]/g, '')) + '">' + esc(disp) + '</a>';
+  }).filter(Boolean).join(' / ');
+}
 // href = Amap H5 fallback (new tab on Android/desktop). data-lat/lon/name drive
 // the exact-pin native iOS scheme at tap time; data-key is the no-coords fallback.
 function mapAttrs(x){
@@ -281,7 +290,7 @@ function viewHotel(city){
   h += '<div class="gr-facts">'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkIn',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkInTime)+'</div></div>'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkOut',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkOutTime)+'</div></div>'
-     + '<div class="gr-fact"><div class="gr-fact-k">'+up(t('phone',state.lang))+'</div><div class="gr-fact-v sm">'+esc(ho.phone)+'</div></div>'
+     + '<div class="gr-fact"><div class="gr-fact-k">'+up(t('phone',state.lang))+'</div><div class="gr-fact-v sm">'+telLinks(ho.phone)+'</div></div>'
      + '<div class="gr-fact"><div class="gr-fact-k">'+up(t('wifi',state.lang))+'</div><div class="gr-fact-v sm">'+esc(ho.wifi)+'</div></div>'
      + '</div>';
   h += '<div class="gr-conf">CONF# '+esc(ho.confirmation)+'</div>';
