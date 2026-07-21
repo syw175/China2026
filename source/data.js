@@ -1,103 +1,12 @@
 // Shared itinerary content for all three designs.
-// Placeholder activity names (bilingual EN + 中文); real city/date framing.
+// Finalized bilingual (EN + 中文) itinerary data; addresses & Amap links verbatim.
 
 let _id = 0;
 const uid = () => 'x' + (++_id);
 
-// helper to build a map URL from a placeholder query
-const map = (q) => 'https://maps.apple.com/?q=' + encodeURIComponent(q);
-
-// nearby item factory
-const near = (type, en, zh, distance, note_en, note_zh) => ({
-  type,
-  name: { en, zh },
-  distance,
-  address: { text: 'Nearby address ' + '附近地址', mapUrl: map(en) },
-  note: { en: note_en, zh: note_zh },
-});
-
-// item factory
-const item = (time, type, en, zh, hoodEn, hoodZh, addrEn, addrZh, booking, descEn, descZh, nearby) => ({
-  id: uid(),
-  time,
-  type, // activity | meal | sight | transit
-  name: { en, zh },
-  neighborhood: { en: hoodEn, zh: hoodZh },
-  address: { text: addrEn + '  ' + addrZh, mapUrl: map(en + ' ' + addrEn) },
-  bookingRequired: !!booking,
-  desc: { en: descEn, zh: descZh },
-  nearby: nearby || [],
-});
-
 const day = (date, dayLabel, titleEn, titleZh, items) => ({ date, dayLabel, title: { en: titleEn, zh: titleZh }, items });
 
-// ---- reusable nearby clusters (placeholder) ----
-const nb1 = [
-  near('sight', 'Old Clock Tower', '老钟楼', '150 m', 'Great photo spot', '绝佳拍照点'),
-  near('restaurant', 'Corner Noodle Shop', '转角面店', '200 m', 'Quick local bite', '地道小吃'),
-  near('activity', 'Riverside Walk', '沿江步道', '300 m', 'Easy 20-min stroll', '轻松漫步 20 分钟'),
-];
-const nb2 = [
-  near('sight', 'Hidden Garden', '隐秘花园', '250 m', 'Quiet courtyard', '宁静庭院'),
-  near('restaurant', 'Tea & Dessert House', '茶点屋', '180 m', 'Try the sweet soup', '试试糖水'),
-];
-const nb3 = [
-  near('restaurant', 'Street Food Stall', '街头小吃', '120 m', 'Cash only', '仅收现金'),
-  near('activity', 'Craft Workshop', '手工工坊', '400 m', 'Drop-in classes', '可现场体验'),
-  near('sight', 'View Terrace', '观景露台', '350 m', 'Sunset views', '日落美景'),
-];
-
-const D = 'A short placeholder description of this stop goes here — swap in your real notes later.';
-const Dz = '这里是该行程的占位描述，稍后可替换为你的真实备注。';
-
-// ============================ GUANGZHOU ============================
-const guangzhou = {
-  id: 'gz',
-  name: { en: 'Guangzhou', zh: '广州' },
-  dateRange: 'Jul 26 – 29',
-  hotel: {
-    name: { en: 'Riverside Hotel', zh: '江畔酒店' },
-    address: { text: '88 Riverside Rd  江滨路 88 号', mapUrl: map('Riverside Hotel Guangzhou') },
-    phone: '+86 20 8888 6666', confirmation: 'RVS-88231',
-    checkIn: { time: '15:00', note: { en: 'Check in at the Level 1 front desk — please have every guest’s passport ready.', zh: '请于一楼前台办理入住，并备好每位客人的护照。' } },
-    checkOut: { time: '12:00', note: { en: 'Free luggage storage available after checkout.', zh: '退房后可免费寄存行李。' } },
-    wifi: { en: 'Free Wi-Fi · network “Riverside-Guest”, no password', zh: '免费 Wi-Fi · 网络“Riverside-Guest”，无需密码' },
-    notes: [{ en: 'Breakfast buffet 7:00–10:00, Level 2', zh: '自助早餐 7:00–10:00，二楼' }, { en: '24-hour front desk & concierge', zh: '24 小时前台与礼宾服务' }],
-  },
-  mustEats: [
-    { name: { en: 'Morning Dim Sum', zh: '早茶点心' }, note: { en: 'Shrimp dumplings & buns', zh: '虾饺与包点' } },
-    { name: { en: 'Wonton Noodles', zh: '云吞面' }, note: { en: 'Springy egg noodles', zh: '弹牙鸡蛋面' } },
-    { name: { en: 'Roast Goose', zh: '烧鹅' }, note: { en: 'Crispy skin classic', zh: '脆皮经典' } },
-    { name: { en: 'Rice Noodle Rolls', zh: '肠粉' }, note: { en: 'Silky steamed rolls', zh: '滑嫩蒸卷' } },
-    { name: { en: 'Double-skin Milk', zh: '双皮奶' }, note: { en: 'Warm milk custard', zh: '温热奶羹' } },
-    { name: { en: 'Char Siu', zh: '叉烧' }, note: { en: 'Honey-glazed pork', zh: '蜜汁叉烧' } },
-    { name: { en: 'Claypot Rice', zh: '煲仔饭' }, note: { en: 'Sizzling rice with cured meats', zh: '腊味煲仔饭，锅巴香脆' } },
-  ],
-  days: [
-    day('Jul 26', 'Sat', 'Arrival & Old Town', '抵达与老城', [
-      item('14:00', 'transit', 'Hotel Check-in', '酒店入住', 'Riverside', '江畔', 'Riverside Rd', '江滨路', false, D, Dz, nb1),
-      item('16:30', 'sight', 'Old Town Stroll', '老城漫步', 'Old Town', '老城区', 'Heritage Lane', '老街', false, D, Dz, nb2),
-      item('19:00', 'meal', 'Welcome Dinner', '接风晚餐', 'Old Town', '老城区', '12 Food St', '美食街 12 号', true, D, Dz, nb3),
-    ]),
-    day('Jul 27', 'Sun', 'Riverside & Markets', '江畔与市集', [
-      item('09:00', 'meal', 'Morning Tea', '早茶', 'Downtown', '市中心', '3 Teahouse Rd', '茶楼路 3 号', true, D, Dz, nb3),
-      item('11:00', 'activity', 'Local Market', '本地市集', 'Downtown', '市中心', 'Market Sq', '市集广场', false, D, Dz, nb1),
-      item('15:00', 'sight', 'Canton Tower Area', '广州塔周边', 'Riverside', '江畔', 'Tower Plaza', '塔前广场', true, D, Dz, nb2),
-      item('20:00', 'activity', 'River Night Cruise', '珠江夜游', 'Riverside', '江畔', 'Ferry Pier', '渡轮码头', true, D, Dz, nb1),
-    ]),
-    day('Jul 28', 'Mon', 'Temples & Tea', '寺庙与茶', [
-      item('09:30', 'sight', 'Historic Temple', '历史寺庙', 'West District', '西区', 'Temple Rd', '寺庙路', false, D, Dz, nb2),
-      item('12:30', 'meal', 'Dim Sum Lunch', '点心午餐', 'West District', '西区', '9 Garden Rd', '花园路 9 号', false, D, Dz, nb3),
-      item('16:00', 'activity', 'Art District', '艺术区', 'North', '北区', 'Creative Park', '创意园', false, D, Dz, nb1),
-    ]),
-    day('Jul 29', 'Tue', 'Departure to Shanghai', '前往上海', [
-      item('09:00', 'meal', 'Farewell Breakfast', '告别早餐', 'Riverside', '江畔', 'Hotel Cafe', '酒店咖啡厅', false, D, Dz, nb2),
-      item('12:00', 'transit', 'High-speed Rail', '高铁', 'Station', '车站', 'South Station', '南站', true, D, Dz, nb1),
-    ]),
-  ],
-};
-
-// ---- real-data factories (used by Shanghai & Beijing) ----
+// ---- real-data factories (used by all cities) ----
 // stop factory with a real address + Amap URL
 const itemB = (time, type, en, zh, hoodEn, hoodZh, addr, url, booking, descEn, descZh, nearby) => ({
   id: uid(),
@@ -118,6 +27,188 @@ const nearB = (type, en, zh, note_en, note_zh, addr, url) => ({
   address: { text: addr, mapUrl: url },
   note: { en: note_en, zh: note_zh },
 });
+
+// ============================ GUANGZHOU ============================
+// Real finalized itinerary. Addresses & Amap links verbatim.
+
+const GZ_HOTEL_ADDR = '广州市越秀区北京路238号恒润广场1楼停车场入口旁';
+const GZ_HOTEL_MAP = 'https://www.amap.com/place/B0GRHKO2I9';
+const GZ_AIRPORT_ADDR = '广州白云国际机场';
+const GZ_AIRPORT_MAP = 'https://www.amap.com/place/B00140NZIQ';
+
+const guangzhou = {
+  id: 'gz',
+  name: { en: 'Guangzhou', zh: '广州' },
+  dateRange: 'Jul 26 – 29',
+  hotel: {
+    name: { en: 'Guangzhou Hakka Apartment Beijing Road', zh: '金铂·茶阳复式公寓（北京路店）' },
+    address: { text: GZ_HOTEL_ADDR, mapUrl: GZ_HOTEL_MAP },
+    phone: '+86 20 8054 4120', confirmation: '1013153654',
+    checkIn: { time: '14:00', note: { en: 'Lead guest changed to Michelle Xin Yi Liang; otherwise show the confirmation PDF.', zh: '主入住人已改为Michelle Xin Yi Liang；如有问题请出示确认单PDF。' } },
+    checkOut: { time: '12:00', note: { en: 'Ask the host about keeping our bags until we leave.', zh: '与房东确认能否寄存行李至我们离开。' } },
+    wifi: { en: 'Premium Wi-Fi included, no password', zh: '包含高级 Wi-Fi，无需密码' },
+    notes: [
+      { en: 'Entrance is beside the Hengrun Plaza L1 parking entrance', zh: '入口在恒润广场1楼停车场入口旁' },
+    ],
+  },
+  mustEats: [
+    { name: { en: 'Morning Dim Sum', zh: '早茶点心' }, note: { en: 'Shrimp dumplings & buns', zh: '虾饺与包点' } },
+    { name: { en: 'Wonton Noodles', zh: '云吞面' }, note: { en: 'Springy egg noodles', zh: '弹牙鸡蛋面' } },
+    { name: { en: 'Roast Goose', zh: '烧鹅' }, note: { en: 'Crispy skin classic', zh: '脆皮经典' } },
+    { name: { en: 'Rice Noodle Rolls', zh: '肠粉' }, note: { en: 'Silky steamed rolls', zh: '滑嫩蒸卷' } },
+    { name: { en: 'Double-skin Milk', zh: '双皮奶' }, note: { en: 'Warm milk custard', zh: '温热奶羹' } },
+    { name: { en: 'Char Siu', zh: '叉烧' }, note: { en: 'Honey-glazed pork', zh: '蜜汁叉烧' } },
+    { name: { en: 'Claypot Rice', zh: '煲仔饭' }, note: { en: 'Sizzling rice with cured meats', zh: '腊味煲仔饭，锅巴香脆' } },
+  ],
+  days: [
+    day('Jul 26', 'Sun', 'Arrival, Lingnan History & Pearl River Night Cruise', '抵达·岭南历史·珠江夜游', [
+      itemB('08:55', 'transit', 'Arrival — Guangzhou Baiyun International Airport', '抵达·广州白云国际机场', 'Baiyun', '白云区',
+        GZ_AIRPORT_ADDR, GZ_AIRPORT_MAP, false,
+        'Steven arrives at Guangzhou Airport; will go to the hotel to drop off bags and meet up for dim sum.',
+        'Steven抵达广州白云机场；先到民宿放下行李，再与大家会合去饮茶。'),
+      itemB('12:00', 'meal', 'Dian Dou De (Beijing Road No. 2 Branch)', '点都德（北京路贰店）', 'Beijing Road', '北京路',
+        '广州市越秀区北京路352、354号', 'https://www.amap.com/place/B0FFK6QJP6', false,
+        'Advance booking is not required, but a reservation or remote queue number is advisable for seven. Check Dian Dou De’s current WeChat channel or 美味不用等.',
+        '无需提前订位，但七人建议预约或线上取号。查看点都德官方微信或"美味不用等"。', [
+        nearB('shopping', 'Beijing Road Pedestrian Street', '北京路步行街',
+          'Very touristy, pedestrian-street browsing.',
+          '很热闹的旅游步行街，随意逛逛。',
+          '广州市越秀区北京路（公园前站E口步行约170米）', 'https://www.amap.com/place/B00141RH20'),
+        nearB('restaurant', 'Ren Xin Lao Pu Flagship', '仁信老铺旗舰店',
+          'Classic Cantonese dairy dessert known for their double-skin milk.',
+          '经典粤式奶制甜品老铺，以双皮奶闻名。',
+          '广州市越秀区北京路327号1-2层', 'https://www.amap.com/place/B0FFFPAIUH'),
+        nearB('sight', 'Beijing Road Millennium Ancient Road Ruins', '北京路千年古道遗址',
+          'Street-level archaeology: stacked road surfaces from several dynasties directly beneath modern Beijing Road.',
+          '街面考古：现代北京路正下方叠压着多个朝代的路面遗迹。',
+          '广州市越秀区北京路文化旅游区', 'https://www.amap.com/place/B00140T1AY'),
+      ]),
+      itemB('13:30', 'sight', 'Sacred Heart Cathedral', '石室圣心大教堂', 'Yuexiu', '越秀区',
+        '广州市越秀区一德路旧部前56号', 'https://www.amap.com/place/B00140UHIZ', false,
+        'Public visitation hours run until 14:30 on Sundays; otherwise check out the exterior and take photos. Defining Guangzhou Gothic landmark.',
+        '周日对外开放参观至14:30；错过也可在外面拍照打卡。广州标志性的哥特式建筑。', [
+        nearB('restaurant', 'MOTTLE Cafe (Sacred Heart Branch)', 'MOTTLE Cafe（石室店）',
+          'Trendy on Rednote; directly beside the cathedral square for specialty coffee and dessert.',
+          '小红书上很火；就在教堂广场旁，精品咖啡与甜品。',
+          '广州市越秀区劳动路17号(一德路地铁站B口步行320米)', 'https://www.amap.com/place/B0FFK68Z7B'),
+      ]),
+      itemB('15:00', 'sight', 'Nanyue King Museum — Palace Exhibition', '南越王博物院（王宫展区）', 'Beijing Road', '北京路',
+        '广州市越秀区中山四路316号', 'https://www.amap.com/place/B00140USZS', true,
+        'Summer last entry is 17:00 and it closes at 18:00 — if we miss this, it’s alright. Book in WeChat 南越王博物院 via 王宫展区 → 门票讲解预约. Official visit guide: https://www.nywmuseum.org.cn/News/VisitIndex/Visit',
+        '夏季17:00停止入场，18:00闭馆——错过也没关系。在微信"南越王博物院"经"王宫展区→门票讲解预约"购票。官方参观指南：https://www.nywmuseum.org.cn/News/VisitIndex/Visit'),
+      itemB('17:30', 'meal', 'Flexible Dinner', '灵活晚餐', 'Haizhu', '海珠区',
+        '广州市海珠区', 'https://www.amap.com/place/BZ7QP702CE', false,
+        'Preferably somewhere closer to the Binjiang West Pearl River because we’ll go on the evening cruise afterwards; walk the Binjiang West promenade until it’s time, for minimal stress and planning.',
+        '尽量选在滨江西珠江边附近——晚饭后就去乘夜游船。吃完沿滨江西步道散步等开船，轻松不赶。'),
+      itemB('21:10', 'activity', 'Pearl River Night Cruise from Tianzi Wharf', '珠江夜游·天字码头', 'Yuexiu', '越秀区',
+        '广州市越秀区沿江中路天字码头', 'https://www.amap.com/place/B0FFG22YZJ', true,
+        'Arrive 15–20 minutes before departure. Must book ahead, but departures run every 20–30 minutes; approximate cruise time 1 hour. Make sure to book the upper floor with exterior access for the best views and photographs. Official booking: https://ykz.zjyeyou.com/',
+        '开船前15–20分钟到达。需提前订票，班次约每20–30分钟一班；航程约1小时。务必订带露天区域的上层船票，视野和拍照最佳。官方购票：https://ykz.zjyeyou.com/', [
+        nearB('restaurant', 'Wentong Ice Room (Huifu East Road)', '文通冰室（惠福东路店）',
+          'About 10 minutes toward Huifu East Road for milk tea and Hong Kong-style snacks.',
+          '往惠福东路方向约10分钟；奶茶与港式小食。',
+          '广州市越秀区惠福东路522(距地铁6号线北京路B出口步行660m)', 'https://www.amap.com/place/B0G069PTGD'),
+        nearB('restaurant', 'Ren Xin Lao Pu Flagship', '仁信老铺旗舰店',
+          'Towards hotel direction; double-skin milk.',
+          '在回民宿的方向；双皮奶。',
+          '广州市越秀区北京路327号1-2层', 'https://www.amap.com/place/B0FFFPAIUH'),
+      ]),
+    ]),
+    day('Jul 27', 'Mon', 'Old Xiguan by Day & Night', '老西关·日与夜', [
+      itemB('09:00', 'meal', 'Panxi Restaurant', '泮溪酒家', 'Liwan', '荔湾区',
+        '广州市荔湾区龙津西路151号', 'https://www.amap.com/place/B00140GQNN', true,
+        'Michelin-recommended dim sum. Try to request a table for seven near the garden.',
+        '米其林推荐早茶。尽量订一张靠园林景观的七人桌。'),
+      itemB('10:45–12:00', 'sight', 'Chen Clan Ancestral Hall (Guangdong Folk Arts Museum)', '陈氏书院（广东民间工艺博物馆）', 'Liwan', '荔湾区',
+        '广州市荔湾区中山七路恩龙里34号', 'https://www.amap.com/place/B00140H88E', true,
+        'Official hours are 09:00–17:30 with 17:00 last entry. Booking required — purchase seven timed tickets through WeChat account 广东民间工艺博物馆服务号 via 门票购买. Official museum site: https://www.gzcjc.com.cn/',
+        '开放时间09:00–17:30，17:00停止入场。需预约——通过微信公众号"广东民间工艺博物馆服务号"的"门票购买"购买七张分时门票。官网：https://www.gzcjc.com.cn/'),
+      itemB('12:30', 'meal', 'Yin Ji Rice Noodle Rolls (Wenchang North Road Branch)', '银记肠粉（文昌北路店）', 'Liwan', '荔湾区',
+        '广州市荔湾区文昌北路345号之一、之二、之三首层', 'https://www.amap.com/place/B0FFFPKJL5', false,
+        'Super famous Wenchang shop since 1958 — exceptionally thin, soft rice sheets; beef and egg rice rolls are practical fast orders.',
+        '1958年至今的文昌名店——粉皮极薄嫩滑；牛肉肠、鸡蛋肠出餐快，实惠好点。'),
+      itemB('13:30–16:30', 'sight', 'Shamian Island', '沙面岛', 'Liwan', '荔湾区',
+        '广州市荔湾区沙面岛', 'https://www.amap.com/place/B00140NZ25', false,
+        'Former foreign-concession island layers European façades onto the Pearl River.',
+        '旧租界小岛，欧式建筑立面与珠江景致相映。', [
+        nearB('restaurant', 'Starbucks Reserve Guangzhou Shamian', '星巴克臻选（广州沙面店）',
+          'Air-conditioned break.',
+          '有空调，歇歇脚。',
+          '广州市荔湾区沙面大街50-52号', 'https://www.amap.com/place/B00140NZ8T'),
+        nearB('restaurant', 'HEYTEA Guangzhou Shamian DP', '喜茶广州沙面DP店',
+          'About 5 minutes away in a heritage building. Order at the counter or through the 喜茶 WeChat mini-program after selecting 广州沙面DP店; check seasonal Cantonese-dessert-inspired drinks.',
+          '约5分钟路程，开在历史建筑里。柜台点单，或在喜茶微信小程序选"广州沙面DP店"下单；留意粤式甜品灵感的季节限定。',
+          '广州市荔湾区沙面大街49号首层', 'https://www.amap.com/place/B0M63LAK9M'),
+      ]),
+      itemB('18:00', 'meal', 'Flexible Dinner Option', '灵活晚餐', 'Liwan', '荔湾区',
+        '广州市荔湾区恩宁路99号', 'https://www.amap.com/place/B0IUPDSJHU', false,
+        'Open to anything around here; chill out until sunset and see the trendy Yongqingfang district at night.',
+        '这附近吃什么都行；悠闲待到日落，晚上再逛时髦的永庆坊。'),
+      itemB('19:00', 'sight', 'Yongqingfang & Enning Road Evening Walk', '永庆坊·恩宁路夜游', 'Liwan', '荔湾区',
+        '广州市荔湾区恩宁路99号', 'https://www.amap.com/place/B0IUPDSJHU', false,
+        'Very atmospheric district after dark — focus on the Enning Road arcades, canal lighting and courtyards. Open to anything here until back to the hotel; going out on an expedition tomorrow to see the Seven Star Crags.',
+        '入夜后氛围极佳——重点看恩宁路骑楼、涌边灯光与院落。玩到尽兴再回民宿；明天远行去看七星岩。', [
+        nearB('restaurant', 'Red Door Coffee', '红门咖啡',
+          'Cool alcoholic coffee drinks sold here.',
+          '有特调含酒精咖啡。',
+          '广州市荔湾区多宝路多宝坊涌边1号(粤剧博物馆核算采样点隔壁)', 'https://www.amap.com/place/B0JBSZR5CW'),
+      ]),
+    ]),
+    day('Jul 28', 'Tue', 'Star Lake & Karst Peaks', '星湖与喀斯特峰林', [
+      itemB('06:30–07:45', 'transit', 'Transit to Panyu Intercity Station', '前往番禺城际站', 'Yuexiu–Panyu', '越秀—番禺',
+        '番禺城际站', 'https://www.amap.com/place/B0KD55VY6C', false,
+        'Take Metro Line 2 from Gongyuanqian to Guangzhou South and then to Panyu Station. Use two Didi vehicles as the late-departure or rain fallback. Every traveler should complete Guangdong Intercity identity and payment setup before this morning.',
+        '从公园前乘地铁2号线到广州南站，再到番禺站。若出发晚或下雨，则分乘两辆滴滴。所有人应在今早之前完成广东城际的实名与支付设置。'),
+      itemB('08:00–09:00', 'transit', 'Guangdong Intercity to Zhaoqing Station', '广东城际前往肇庆站', 'Panyu–Zhaoqing', '番禺—肇庆',
+        '番禺城际站 → 肇庆站；具体车次及站台', 'https://www.amap.com/place/B0KD55VY6C', false,
+        'Use a direct train scheduled to arrive around 09:00. Guangdong Intercity operates with metro-style boarding rather than advance reservations. Ticketing guidance: https://www.gz.gov.cn/zwfw/zxfw/jtfw/content/post_9650883.html',
+        '选约09:00到达的直达车次。广东城际类似地铁随到随走，无需提前订座。购票指南：https://www.gz.gov.cn/zwfw/zxfw/jtfw/content/post_9650883.html'),
+      itemB('09:00–09:30', 'transit', 'Didi to Seven Star Crags North Gate', '前往七星岩北门', 'Zhaoqing', '肇庆市',
+        '七星岩景区(北门)', 'https://www.amap.com/place/B02F60P72K', false,
+        'Use two Didis to the North Gate before admission.',
+        '分乘两辆滴滴到北门，再购票入园。'),
+      itemB('09:30–14:30', 'sight', 'Seven Star Crags Moderate Scenic Circuit', '七星岩中等强度山水环线', 'Duanzhou, Zhaoqing', '肇庆端州区',
+        '肇庆市端州区七星岩景区北门（肇庆大道辅路附近）', 'https://www.amap.com/place/B02F60P72K', true,
+        'North Gate → Tianzhu Rock Summit → Shishi Rock → Shuiyue Palace → archway-side exit. Official scenic-area guide: https://t.xhglj.com.cn/pwzn/index.shtml. Skip Tianzhu Rock when wet or stormy. Lunch after.',
+        '北门→天柱岩→石室岩→水月宫→牌坊侧出口。官方游览指南：https://t.xhglj.com.cn/pwzn/index.shtml。雨天或雷雨时跳过天柱岩。下山后吃午餐。'),
+      itemB('16:30', 'transit', 'Didi to Zhaoqing Station', '前往肇庆站', 'Zhaoqing', '肇庆市',
+        '肇庆站', 'https://www.amap.com/search?query=' + encodeURIComponent('肇庆站'), false,
+        'For the 16:30–17:30 Guangdong Intercity back to Panyu, then return to our hotel. Keep dinner flexible around the hotel since we had a late lunch.',
+        '乘16:30–17:30的广东城际返回番禺，再回民宿。午餐吃得晚，晚餐就在民宿附近灵活解决。'),
+      itemB('19:30', 'meal', 'Flexible Light Beijing Road Dinner', '北京路灵活轻食晚餐', 'Beijing Road', '北京路',
+        '广州市越秀区惠福东路452号', 'https://www.amap.com/place/B0FFLI77QK', false,
+        'Preference: Min Ji Claypot Rice (Beijing Road Branch). Or wander Huifu Gourmet and Flower Street / 惠福美食花街 — lots of Cantonese snacks and long-standing restaurants (惠福东路, from 禺山路 west to No. 470; pick whichever is currently open).',
+        '首选Min Ji煲仔饭（北京路店）；或逛惠福美食花街——粤式小吃与老字号云集（惠福东路，东起禺山路、西至惠福东路470号；选当前营业的商户）。'),
+      itemB('21:00', 'wellness', 'Chinese Full-body Massage', '中式全身推拿', 'Beijing Road', '北京路',
+        '北京路（民宿附近）', 'https://www.amap.com/search?query=' + encodeURIComponent('北京路 按摩'), true,
+        'Check on the apps for a place close to our hotel to get a full-body massage.',
+        '在大众点评等App上找一家离民宿近的全身推拿。'),
+    ]),
+    day('Jul 29', 'Wed', 'Farewell Tea & the Five Rams', '告别早茶·五羊', [
+      itemB('08:30', 'meal', 'Tao Tao Ju (Beijing Road Branch)', '陶陶居酒家（北京路店）', 'Beijing Road', '北京路',
+        '广州市越秀区北京路102–168号北京路天河城7楼707–708号商铺', 'https://www.amap.com/search?query=' + encodeURIComponent('陶陶居 北京路天河城'), true,
+        'The brand dates to 1880 and is a Guangzhou dim-sum institution; prioritize shrimp dumplings, roast specialties and flaky pastries. Locations: https://www.taotaoju1880.com/zoujintaotaoju/taotaojumendian',
+        '品牌创于1880年，是广州早茶老字号；主攻虾饺、烧味与酥点。门店信息：https://www.taotaoju1880.com/zoujintaotaoju/taotaojumendian'),
+      itemB('09:30', 'sight', 'Yuexiu Park: Five Rams & Zhenhai Tower', '越秀公园·五羊石像·镇海楼', 'Yuexiu', '越秀区',
+        '广州市越秀区解放北路960号；西门进（西门→五羊石像→明城墙→镇海楼）', 'https://www.amap.com/place/B00140T14M', false,
+        'The West-gate route links Guangzhou’s Five Rams statue, the surviving Ming city wall and the 1380 Zhenhai Tower; expect hills and stairs.',
+        '西门线路串起五羊石像、明代古城墙与1380年落成的镇海楼；有坡道和台阶。', [
+        nearB('sight', 'Sun Yat-sen Memorial Hall (South Gate)', '中山纪念堂（南门）',
+          'The 1931 memorial hall celebrating the founding father of modern China.',
+          '1931年落成，纪念中国近代革命先行者孙中山先生。',
+          '广州市越秀区东风中路259号', 'https://www.amap.com/place/B00140TFUN'),
+      ]),
+      itemB('13:00', 'admin', 'Collect Luggage & Check Out', '取行李并退房', 'Beijing Road', '北京路',
+        GZ_HOTEL_ADDR, GZ_HOTEL_MAP, false,
+        'Dependent on whether we secured late checkout or the host can store our bags for us.',
+        '取决于是否争取到延迟退房，或房东能否帮忙寄存行李。'),
+      itemB('16:30', 'transit', 'Flight to Shanghai — Guangzhou Baiyun International Airport', '飞往上海·广州白云国际机场', 'Baiyun District', '白云区',
+        GZ_AIRPORT_ADDR, GZ_AIRPORT_MAP, false,
+        'Flight to Shanghai; arrive 2 hours early for domestic flights.',
+        '飞往上海；国内航班请提前2小时到达机场。'),
+    ]),
+  ],
+};
 
 // ============================ SHANGHAI ============================
 // Real finalized itinerary. Addresses & Amap links verbatim.
