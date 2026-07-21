@@ -6,10 +6,25 @@
 const SHARED_JS = `
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// Rewrite an amap.com web URL into a uri.amap.com deep link that launches the
-// native Amap app on mobile (callnative=1); desktop/no-app falls back to the H5 map.
+// The key identifying an amap.com URL in the GEO map: "place/<POIID>" or
+// "search/<decoded query>" — matches the keys written by tools/fetch-geo.js.
+function geoKey(u){
+  if(!u) return null;
+  var m = u.match(/\\/place\\/([A-Za-z0-9]+)/);
+  if(m) return 'place/' + m[1];
+  m = u.match(/search\\?query=([^&]*)/);
+  if(m) return 'search/' + decodeURIComponent(m[1]);
+  return null;
+}
+
+// Build the Amap H5 fallback link (opens the app on Android via callnative=1,
+// shows the exact-pin web map otherwise). Uses geocoded coordinates when we
+// have them, else the raw poiid/keyword.
 function toAppLink(u){
   if(!u) return u;
+  var g = (typeof GEO !== 'undefined') ? GEO[geoKey(u)] : null;
+  if(g) return 'https://uri.amap.com/marker?position=' + g.lon + ',' + g.lat
+    + '&name=' + encodeURIComponent(g.name || '') + '&src=ChinaTrip&callnative=1';
   var m = u.match(/^https?:\\/\\/www\\.amap\\.com\\/place\\/([A-Za-z0-9]+)/);
   if(m) return 'https://uri.amap.com/marker?poiid=' + m[1] + '&src=ChinaTrip&callnative=1';
   m = u.match(/^https?:\\/\\/www\\.amap\\.com\\/search\\?query=([^&]*)/);
@@ -17,8 +32,15 @@ function toAppLink(u){
   return u;
 }
 
-// Keyword for opening the Amap app via a place search — prefer the Chinese
-// name plus the full address so the app resolves the exact spot.
+// Geocoded {lat, lon, name} for a location, used to build the exact-pin native
+// iOS scheme at tap time. Null when the location wasn't resolved.
+function geoOf(u){
+  var g = (typeof GEO !== 'undefined') ? GEO[geoKey(u)] : null;
+  return g ? { lat: g.lat, lon: g.lon, name: g.name || '' } : null;
+}
+
+// Keyword for opening the Amap app via a place search — used only when a
+// location has no geocoded coordinates. Prefer Chinese name + full address.
 function searchKeyOf(nameObj, addr){
   var n = nameObj ? (nameObj.zh || nameObj.en || '') : '';
   var a = addr ? (addr.text || '') : '';
@@ -50,6 +72,7 @@ function formatNear(n, lang){
     note: bilingual(n.note, lang).main,
     addrText: n.address ? n.address.text : '',
     mapUrl: n.address ? toAppLink(n.address.mapUrl) : '',
+    geo: n.address ? geoOf(n.address.mapUrl) : null,
     searchKey: searchKeyOf(n.name, n.address),
   };
 }
@@ -64,6 +87,7 @@ function formatItem(it, lang){
     desc: bilingual(it.desc, lang).main,
     addrText: it.address ? it.address.text : '',
     mapUrl: it.address ? toAppLink(it.address.mapUrl) : '',
+    geo: it.address ? geoOf(it.address.mapUrl) : null,
     searchKey: searchKeyOf(it.name, it.address),
     booking: !!it.bookingRequired,
     bookingLabel: it.bookingRequired ? t('bookingRequired', lang) : t('noBooking', lang),
@@ -97,6 +121,7 @@ function formatHotel(hotel, lang){
     name: bilingual(hotel.name, lang),
     addrText: hotel.address.text,
     mapUrl: toAppLink(hotel.address.mapUrl),
+    geo: geoOf(hotel.address.mapUrl),
     searchKey: searchKeyOf(hotel.name, hotel.address),
     phone: hotel.phone,
     confirmation: hotel.confirmation,

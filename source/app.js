@@ -187,9 +187,17 @@ var root;
 function up(s){ return String(s==null?'':s).toUpperCase(); }
 function sub(o){ return o.sub ? '<div class="gr-sub">'+esc(o.sub)+'</div>' : ''; }
 function photo(mod, cap){ return '<div class="gr-photo '+mod+'"><span class="gr-photo-cap">'+esc(cap)+'</span></div>'; }
+// href = Amap H5 fallback (new tab on Android/desktop). data-lat/lon/name drive
+// the exact-pin native iOS scheme at tap time; data-key is the no-coords fallback.
+function mapAttrs(x){
+  var a = 'href="'+esc(x.mapUrl)+'"';
+  if(x.geo) a += ' data-lat="'+esc(x.geo.lat)+'" data-lon="'+esc(x.geo.lon)+'" data-name="'+esc(x.geo.name)+'"';
+  else a += ' data-key="'+esc(x.searchKey)+'"';
+  return a;
+}
 
 function nearRow(n, withType){
-  return '<a class="gr-nearrow" href="'+esc(n.mapUrl)+'" data-key="'+esc(n.searchKey)+'">'
+  return '<a class="gr-nearrow" '+mapAttrs(n)+'>'
     + (withType ? '<div class="gr-nearrow-t">'+esc(n.typeLabel)+'</div>' : '')
     + '<div class="gr-nearrow-n'+(withType?' lg':'')+'">'+esc(n.name.main)+'</div>'
     + (n.note ? '<div class="gr-nearrow-note">'+esc(n.note)+'</div>' : '')
@@ -249,7 +257,7 @@ function viewMap(city, day){
      + '<button data-mapscope="city" class="'+(state.mapScope==='city'?'on':'')+'">'+esc(city.name.main)+'</button>'
      + '</div>';
   h += '<div class="gr-maplist">' + items.map(function(mi){
-      return '<a class="gr-maprow" href="'+esc(mi.mapUrl)+'" data-key="'+esc(mi.searchKey)+'">'
+      return '<a class="gr-maprow" '+mapAttrs(mi)+'>'
         + '<div style="min-width:0"><div class="gr-maprow-n">'+esc(mi.name.main)+'</div>'
         + '<div class="gr-maprow-a">'+esc(mi.addrText)+'</div></div>'
         + '<div class="gr-maprow-arrow">&#8594;</div></a>';
@@ -261,7 +269,7 @@ function viewHotel(city){
   var ho = city.hotel, h = '<div>';
   h += photo('gr-photo--1610', 'HOTEL.JPG');
   h += '<div class="gr-hotelname">'+esc(ho.name.main)+'</div>' + sub(ho.name);
-  h += '<a class="gr-addr" href="'+esc(ho.mapUrl)+'" data-key="'+esc(ho.searchKey)+'"><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
+  h += '<a class="gr-addr" '+mapAttrs(ho)+'><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
   h += '<div class="gr-facts">'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkIn',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkInTime)+'</div></div>'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkOut',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkOutTime)+'</div></div>'
@@ -291,7 +299,7 @@ function overlay(stop){
      + (stop.name.sub ? '<div class="gr-stopname-sub">'+esc(stop.name.sub)+'</div>' : '');
   if(stop.booking) h += '<div class="gr-chip">'+esc(stop.bookingLabel)+'</div>';
   if(stop.desc) h += '<div class="gr-stopdesc">'+esc(stop.desc)+'</div>';
-  h += '<a class="gr-addr" href="'+esc(stop.mapUrl)+'" data-key="'+esc(stop.searchKey)+'"><span>'+esc(stop.addrText)+'</span><span>&#8594;</span></a>';
+  h += '<a class="gr-addr" '+mapAttrs(stop)+'><span>'+esc(stop.addrText)+'</span><span>&#8594;</span></a>';
   if(stop.nearby.length){
     h += '<div class="gr-sechead gr-nearby-sec">'+up(t('nearby',state.lang))+'</div>'
        + '<div class="gr-nearby">' + stop.nearby.map(function(n){ return nearRow(n, true); }).join('') + '</div>';
@@ -348,24 +356,31 @@ document.addEventListener('click', function(e){
   if(e.target.closest('[data-close]')){ state.openStop = null; render(); return; }
   if(e.target.hasAttribute('data-backdrop')){ state.openStop = null; render(); return; }
 });
-// Amap address links: on mobile, a tap opens the native Amap app via its URL
-// scheme (a user-gesture navigation iOS/Android will honor), searching the
-// place name + address. No timed web fallback here on purpose — on iOS the
-// "Open in Amap?" confirmation keeps the page visible, so any fallback timer
-// races the prompt and would clobber the itinerary tab. Desktop (no scheme)
-// opens the uri.amap.com web link in a new tab instead.
-function amapNativeUrl(key){
-  var scheme = /Android/i.test(navigator.userAgent) ? 'androidamap' : 'iosamap';
-  return scheme + '://poi?sourceApplication=ChinaTrip&name=' + encodeURIComponent(key) + '&dev=0';
+// Amap address links (modern, cross-browser, graceful degradation):
+//  - iOS: a tap opens the native app directly to the exact pin via iosamap://
+//    viewMap (coordinates) — same tab, itinerary preserved. This is the user's
+//    chosen iOS behaviour; a new-tab fallback can't coexist with in-place
+//    auto-open on WebKit. Missing coords → name-search scheme.
+//  - Android / desktop / other: open the exact-pin Amap H5 map (href) in a NEW
+//    tab. callnative=1 auto-launches the app on Android; otherwise the web map
+//    shows. Itinerary tab always preserved.
+function ua(){ return navigator.userAgent || ''; }
+function isIOS(){ return /iPhone|iPad|iPod/i.test(ua()) || (/Macintosh/.test(ua()) && navigator.maxTouchPoints > 1); }
+function isAndroid(){ return /Android/i.test(ua()); }
+function amapNativeUrl(a){
+  var scheme = isAndroid() ? 'androidamap' : 'iosamap';
+  var lat = a.getAttribute('data-lat'), lon = a.getAttribute('data-lon'), name = a.getAttribute('data-name');
+  if(lat && lon) return scheme + '://viewMap?sourceApplication=ChinaTrip&poiname=' + encodeURIComponent(name || '') + '&lat=' + lat + '&lon=' + lon + '&dev=0';
+  return scheme + '://poi?sourceApplication=ChinaTrip&name=' + encodeURIComponent(a.getAttribute('data-key') || name || '') + '&dev=0';
 }
 document.addEventListener('click', function(e){
-  var a = e.target.closest('a[data-key]');
+  var a = e.target.closest('a[data-lat], a[data-key]');
   if(!a) return;
   e.preventDefault();
-  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
-    window.location.href = amapNativeUrl(a.getAttribute('data-key')); // open the app; itinerary tab stays put
+  if(isIOS()){
+    window.location.href = amapNativeUrl(a); // open the app in place; itinerary tab stays put
   } else {
-    window.open(a.getAttribute('href'), '_blank', 'noopener'); // desktop: web map in a new tab
+    window.open(a.getAttribute('href'), '_blank', 'noopener'); // Android auto-launches app from H5; desktop shows map
   }
 });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape' && state.openStop){ state.openStop = null; render(); } });
@@ -379,7 +394,7 @@ return `<title>Family China Trip · 家庭中国之旅</title>
 <meta name="theme-color" content="#e9e3d6">
 <style>${CSS}</style>
 <div class="gr-frame" id="gr-root"></div>
-<script>const TRIP=${DATA_JSON.TRIP};const I18N=${DATA_JSON.I18N};\n${JS}</script>`;
+<script>const TRIP=${DATA_JSON.TRIP};const I18N=${DATA_JSON.I18N};const GEO=${DATA_JSON.GEO};\n${JS}</script>`;
 }
 
 module.exports = { buildA };
