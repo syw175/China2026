@@ -189,7 +189,7 @@ function sub(o){ return o.sub ? '<div class="gr-sub">'+esc(o.sub)+'</div>' : '';
 function photo(mod, cap){ return '<div class="gr-photo '+mod+'"><span class="gr-photo-cap">'+esc(cap)+'</span></div>'; }
 
 function nearRow(n, withType){
-  return '<a class="gr-nearrow" href="'+esc(n.mapUrl)+'" target="_blank" rel="noopener">'
+  return '<a class="gr-nearrow" href="'+esc(n.mapUrl)+'">'
     + (withType ? '<div class="gr-nearrow-t">'+esc(n.typeLabel)+'</div>' : '')
     + '<div class="gr-nearrow-n'+(withType?' lg':'')+'">'+esc(n.name.main)+'</div>'
     + (n.note ? '<div class="gr-nearrow-note">'+esc(n.note)+'</div>' : '')
@@ -249,7 +249,7 @@ function viewMap(city, day){
      + '<button data-mapscope="city" class="'+(state.mapScope==='city'?'on':'')+'">'+esc(city.name.main)+'</button>'
      + '</div>';
   h += '<div class="gr-maplist">' + items.map(function(mi){
-      return '<a class="gr-maprow" href="'+esc(mi.mapUrl)+'" target="_blank" rel="noopener">'
+      return '<a class="gr-maprow" href="'+esc(mi.mapUrl)+'">'
         + '<div style="min-width:0"><div class="gr-maprow-n">'+esc(mi.name.main)+'</div>'
         + '<div class="gr-maprow-a">'+esc(mi.addrText)+'</div></div>'
         + '<div class="gr-maprow-arrow">&#8594;</div></a>';
@@ -261,7 +261,7 @@ function viewHotel(city){
   var ho = city.hotel, h = '<div>';
   h += photo('gr-photo--1610', 'HOTEL.JPG');
   h += '<div class="gr-hotelname">'+esc(ho.name.main)+'</div>' + sub(ho.name);
-  h += '<a class="gr-addr" href="'+esc(ho.mapUrl)+'" target="_blank" rel="noopener"><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
+  h += '<a class="gr-addr" href="'+esc(ho.mapUrl)+'"><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
   h += '<div class="gr-facts">'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkIn',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkInTime)+'</div></div>'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkOut',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkOutTime)+'</div></div>'
@@ -291,7 +291,7 @@ function overlay(stop){
      + (stop.name.sub ? '<div class="gr-stopname-sub">'+esc(stop.name.sub)+'</div>' : '');
   if(stop.booking) h += '<div class="gr-chip">'+esc(stop.bookingLabel)+'</div>';
   if(stop.desc) h += '<div class="gr-stopdesc">'+esc(stop.desc)+'</div>';
-  h += '<a class="gr-addr" href="'+esc(stop.mapUrl)+'" target="_blank" rel="noopener"><span>'+esc(stop.addrText)+'</span><span>&#8594;</span></a>';
+  h += '<a class="gr-addr" href="'+esc(stop.mapUrl)+'"><span>'+esc(stop.addrText)+'</span><span>&#8594;</span></a>';
   if(stop.nearby.length){
     h += '<div class="gr-sechead gr-nearby-sec">'+up(t('nearby',state.lang))+'</div>'
        + '<div class="gr-nearby">' + stop.nearby.map(function(n){ return nearRow(n, true); }).join('') + '</div>';

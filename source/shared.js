@@ -6,6 +6,17 @@
 const SHARED_JS = `
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+// Rewrite an amap.com web URL into a uri.amap.com deep link that launches the
+// native Amap app on mobile (callnative=1); desktop/no-app falls back to the H5 map.
+function toAppLink(u){
+  if(!u) return u;
+  var m = u.match(/^https?:\\/\\/www\\.amap\\.com\\/place\\/([A-Za-z0-9]+)/);
+  if(m) return 'https://uri.amap.com/marker?poiid=' + m[1] + '&src=ChinaTrip&callnative=1';
+  m = u.match(/^https?:\\/\\/www\\.amap\\.com\\/search\\?query=([^&]*)/);
+  if(m) return 'https://uri.amap.com/search?keyword=' + m[1] + '&src=ChinaTrip&callnative=1';
+  return u;
+}
+
 const MONTHS = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
 function parseTripDate(str, year){
   const m = String(str).trim().match(/^([A-Za-z]{3})\\s+(\\d{1,2})/);
@@ -30,7 +41,7 @@ function formatNear(n, lang){
     name: bilingual(n.name, lang),
     note: bilingual(n.note, lang).main,
     addrText: n.address ? n.address.text : '',
-    mapUrl: n.address ? n.address.mapUrl : '',
+    mapUrl: n.address ? toAppLink(n.address.mapUrl) : '',
   };
 }
 function formatItem(it, lang){
@@ -43,7 +54,7 @@ function formatItem(it, lang){
     hood: bilingual(it.neighborhood, lang),
     desc: bilingual(it.desc, lang).main,
     addrText: it.address ? it.address.text : '',
-    mapUrl: it.address ? it.address.mapUrl : '',
+    mapUrl: it.address ? toAppLink(it.address.mapUrl) : '',
     booking: !!it.bookingRequired,
     bookingLabel: it.bookingRequired ? t('bookingRequired', lang) : t('noBooking', lang),
     nearby: (it.nearby || []).map(n => formatNear(n, lang)),
@@ -75,7 +86,7 @@ function formatHotel(hotel, lang){
   return {
     name: bilingual(hotel.name, lang),
     addrText: hotel.address.text,
-    mapUrl: hotel.address.mapUrl,
+    mapUrl: toAppLink(hotel.address.mapUrl),
     phone: hotel.phone,
     confirmation: hotel.confirmation,
     checkInTime: hotel.checkIn.time,

@@ -186,6 +186,17 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+// Rewrite an amap.com web URL into a uri.amap.com deep link that launches the
+// native Amap app on mobile (callnative=1); desktop/no-app falls back to the H5 map.
+function toAppLink(u){
+  if(!u) return u;
+  var m = u.match(/^https?:\/\/www\.amap\.com\/place\/([A-Za-z0-9]+)/);
+  if(m) return 'https://uri.amap.com/marker?poiid=' + m[1] + '&src=ChinaTrip&callnative=1';
+  m = u.match(/^https?:\/\/www\.amap\.com\/search\?query=([^&]*)/);
+  if(m) return 'https://uri.amap.com/search?keyword=' + m[1] + '&src=ChinaTrip&callnative=1';
+  return u;
+}
+
 const MONTHS = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
 function parseTripDate(str, year){
   const m = String(str).trim().match(/^([A-Za-z]{3})\s+(\d{1,2})/);
@@ -210,7 +221,7 @@ function formatNear(n, lang){
     name: bilingual(n.name, lang),
     note: bilingual(n.note, lang).main,
     addrText: n.address ? n.address.text : '',
-    mapUrl: n.address ? n.address.mapUrl : '',
+    mapUrl: n.address ? toAppLink(n.address.mapUrl) : '',
   };
 }
 function formatItem(it, lang){
@@ -223,7 +234,7 @@ function formatItem(it, lang){
     hood: bilingual(it.neighborhood, lang),
     desc: bilingual(it.desc, lang).main,
     addrText: it.address ? it.address.text : '',
-    mapUrl: it.address ? it.address.mapUrl : '',
+    mapUrl: it.address ? toAppLink(it.address.mapUrl) : '',
     booking: !!it.bookingRequired,
     bookingLabel: it.bookingRequired ? t('bookingRequired', lang) : t('noBooking', lang),
     nearby: (it.nearby || []).map(n => formatNear(n, lang)),
@@ -255,7 +266,7 @@ function formatHotel(hotel, lang){
   return {
     name: bilingual(hotel.name, lang),
     addrText: hotel.address.text,
-    mapUrl: hotel.address.mapUrl,
+    mapUrl: toAppLink(hotel.address.mapUrl),
     phone: hotel.phone,
     confirmation: hotel.confirmation,
     checkInTime: hotel.checkIn.time,
@@ -299,7 +310,7 @@ function sub(o){ return o.sub ? '<div class="gr-sub">'+esc(o.sub)+'</div>' : '';
 function photo(mod, cap){ return '<div class="gr-photo '+mod+'"><span class="gr-photo-cap">'+esc(cap)+'</span></div>'; }
 
 function nearRow(n, withType){
-  return '<a class="gr-nearrow" href="'+esc(n.mapUrl)+'" target="_blank" rel="noopener">'
+  return '<a class="gr-nearrow" href="'+esc(n.mapUrl)+'">'
     + (withType ? '<div class="gr-nearrow-t">'+esc(n.typeLabel)+'</div>' : '')
     + '<div class="gr-nearrow-n'+(withType?' lg':'')+'">'+esc(n.name.main)+'</div>'
     + (n.note ? '<div class="gr-nearrow-note">'+esc(n.note)+'</div>' : '')
@@ -359,7 +370,7 @@ function viewMap(city, day){
      + '<button data-mapscope="city" class="'+(state.mapScope==='city'?'on':'')+'">'+esc(city.name.main)+'</button>'
      + '</div>';
   h += '<div class="gr-maplist">' + items.map(function(mi){
-      return '<a class="gr-maprow" href="'+esc(mi.mapUrl)+'" target="_blank" rel="noopener">'
+      return '<a class="gr-maprow" href="'+esc(mi.mapUrl)+'">'
         + '<div style="min-width:0"><div class="gr-maprow-n">'+esc(mi.name.main)+'</div>'
         + '<div class="gr-maprow-a">'+esc(mi.addrText)+'</div></div>'
         + '<div class="gr-maprow-arrow">&#8594;</div></a>';
@@ -371,7 +382,7 @@ function viewHotel(city){
   var ho = city.hotel, h = '<div>';
   h += photo('gr-photo--1610', 'HOTEL.JPG');
   h += '<div class="gr-hotelname">'+esc(ho.name.main)+'</div>' + sub(ho.name);
-  h += '<a class="gr-addr" href="'+esc(ho.mapUrl)+'" target="_blank" rel="noopener"><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
+  h += '<a class="gr-addr" href="'+esc(ho.mapUrl)+'"><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
   h += '<div class="gr-facts">'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkIn',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkInTime)+'</div></div>'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkOut',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkOutTime)+'</div></div>'
@@ -401,7 +412,7 @@ function overlay(stop){
      + (stop.name.sub ? '<div class="gr-stopname-sub">'+esc(stop.name.sub)+'</div>' : '');
   if(stop.booking) h += '<div class="gr-chip">'+esc(stop.bookingLabel)+'</div>';
   if(stop.desc) h += '<div class="gr-stopdesc">'+esc(stop.desc)+'</div>';
-  h += '<a class="gr-addr" href="'+esc(stop.mapUrl)+'" target="_blank" rel="noopener"><span>'+esc(stop.addrText)+'</span><span>&#8594;</span></a>';
+  h += '<a class="gr-addr" href="'+esc(stop.mapUrl)+'"><span>'+esc(stop.addrText)+'</span><span>&#8594;</span></a>';
   if(stop.nearby.length){
     h += '<div class="gr-sechead gr-nearby-sec">'+up(t('nearby',state.lang))+'</div>'
        + '<div class="gr-nearby">' + stop.nearby.map(function(n){ return nearRow(n, true); }).join('') + '</div>';
