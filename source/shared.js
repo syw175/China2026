@@ -17,6 +17,14 @@ function toAppLink(u){
   return u;
 }
 
+// Keyword for opening the Amap app via a place search — prefer the Chinese
+// name plus the full address so the app resolves the exact spot.
+function searchKeyOf(nameObj, addr){
+  var n = nameObj ? (nameObj.zh || nameObj.en || '') : '';
+  var a = addr ? (addr.text || '') : '';
+  return (n + ' ' + a).trim().replace(/\\s+/g, ' ');
+}
+
 const MONTHS = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
 function parseTripDate(str, year){
   const m = String(str).trim().match(/^([A-Za-z]{3})\\s+(\\d{1,2})/);
@@ -42,6 +50,7 @@ function formatNear(n, lang){
     note: bilingual(n.note, lang).main,
     addrText: n.address ? n.address.text : '',
     mapUrl: n.address ? toAppLink(n.address.mapUrl) : '',
+    searchKey: searchKeyOf(n.name, n.address),
   };
 }
 function formatItem(it, lang){
@@ -55,6 +64,7 @@ function formatItem(it, lang){
     desc: bilingual(it.desc, lang).main,
     addrText: it.address ? it.address.text : '',
     mapUrl: it.address ? toAppLink(it.address.mapUrl) : '',
+    searchKey: searchKeyOf(it.name, it.address),
     booking: !!it.bookingRequired,
     bookingLabel: it.bookingRequired ? t('bookingRequired', lang) : t('noBooking', lang),
     nearby: (it.nearby || []).map(n => formatNear(n, lang)),
@@ -87,6 +97,7 @@ function formatHotel(hotel, lang){
     name: bilingual(hotel.name, lang),
     addrText: hotel.address.text,
     mapUrl: toAppLink(hotel.address.mapUrl),
+    searchKey: searchKeyOf(hotel.name, hotel.address),
     phone: hotel.phone,
     confirmation: hotel.confirmation,
     checkInTime: hotel.checkIn.time,

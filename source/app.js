@@ -189,7 +189,7 @@ function sub(o){ return o.sub ? '<div class="gr-sub">'+esc(o.sub)+'</div>' : '';
 function photo(mod, cap){ return '<div class="gr-photo '+mod+'"><span class="gr-photo-cap">'+esc(cap)+'</span></div>'; }
 
 function nearRow(n, withType){
-  return '<a class="gr-nearrow" href="'+esc(n.mapUrl)+'">'
+  return '<a class="gr-nearrow" href="'+esc(n.mapUrl)+'" data-key="'+esc(n.searchKey)+'">'
     + (withType ? '<div class="gr-nearrow-t">'+esc(n.typeLabel)+'</div>' : '')
     + '<div class="gr-nearrow-n'+(withType?' lg':'')+'">'+esc(n.name.main)+'</div>'
     + (n.note ? '<div class="gr-nearrow-note">'+esc(n.note)+'</div>' : '')
@@ -249,7 +249,7 @@ function viewMap(city, day){
      + '<button data-mapscope="city" class="'+(state.mapScope==='city'?'on':'')+'">'+esc(city.name.main)+'</button>'
      + '</div>';
   h += '<div class="gr-maplist">' + items.map(function(mi){
-      return '<a class="gr-maprow" href="'+esc(mi.mapUrl)+'">'
+      return '<a class="gr-maprow" href="'+esc(mi.mapUrl)+'" data-key="'+esc(mi.searchKey)+'">'
         + '<div style="min-width:0"><div class="gr-maprow-n">'+esc(mi.name.main)+'</div>'
         + '<div class="gr-maprow-a">'+esc(mi.addrText)+'</div></div>'
         + '<div class="gr-maprow-arrow">&#8594;</div></a>';
@@ -261,7 +261,7 @@ function viewHotel(city){
   var ho = city.hotel, h = '<div>';
   h += photo('gr-photo--1610', 'HOTEL.JPG');
   h += '<div class="gr-hotelname">'+esc(ho.name.main)+'</div>' + sub(ho.name);
-  h += '<a class="gr-addr" href="'+esc(ho.mapUrl)+'"><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
+  h += '<a class="gr-addr" href="'+esc(ho.mapUrl)+'" data-key="'+esc(ho.searchKey)+'"><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
   h += '<div class="gr-facts">'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkIn',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkInTime)+'</div></div>'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkOut',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkOutTime)+'</div></div>'
@@ -291,7 +291,7 @@ function overlay(stop){
      + (stop.name.sub ? '<div class="gr-stopname-sub">'+esc(stop.name.sub)+'</div>' : '');
   if(stop.booking) h += '<div class="gr-chip">'+esc(stop.bookingLabel)+'</div>';
   if(stop.desc) h += '<div class="gr-stopdesc">'+esc(stop.desc)+'</div>';
-  h += '<a class="gr-addr" href="'+esc(stop.mapUrl)+'"><span>'+esc(stop.addrText)+'</span><span>&#8594;</span></a>';
+  h += '<a class="gr-addr" href="'+esc(stop.mapUrl)+'" data-key="'+esc(stop.searchKey)+'"><span>'+esc(stop.addrText)+'</span><span>&#8594;</span></a>';
   if(stop.nearby.length){
     h += '<div class="gr-sechead gr-nearby-sec">'+up(t('nearby',state.lang))+'</div>'
        + '<div class="gr-nearby">' + stop.nearby.map(function(n){ return nearRow(n, true); }).join('') + '</div>';
@@ -347,6 +347,33 @@ document.addEventListener('click', function(e){
   if((el=e.target.closest('[data-open]'))){ state.openStop = el.dataset.open; render(); return; }
   if(e.target.closest('[data-close]')){ state.openStop = null; render(); return; }
   if(e.target.hasAttribute('data-backdrop')){ state.openStop = null; render(); return; }
+});
+// Amap address links: on mobile, a tap opens the native Amap app via its URL
+// scheme (a user-gesture navigation iOS/Android will honor), searching the
+// place name + address. The href stays a uri.amap.com web link as the fallback
+// for desktop or when the app isn't installed; a visibilitychange guard cancels
+// that fallback once the app takes over so the itinerary tab is preserved.
+function amapNativeUrl(key){
+  var scheme = /Android/i.test(navigator.userAgent) ? 'androidamap' : 'iosamap';
+  return scheme + '://poi?sourceApplication=ChinaTrip&name=' + encodeURIComponent(key) + '&dev=0';
+}
+document.addEventListener('click', function(e){
+  var a = e.target.closest('a[data-key]');
+  if(!a) return;
+  var web = a.getAttribute('href');
+  var key = a.getAttribute('data-key');
+  e.preventDefault();
+  if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    window.open(web, '_blank', 'noopener'); // desktop: web map in a new tab, keep the itinerary
+    return;
+  }
+  var start = Date.now();
+  var fallback = setTimeout(function(){
+    if(!document.hidden && Date.now() - start < 2500) window.location.href = web;
+  }, 1200);
+  var onHide = function(){ if(document.hidden){ clearTimeout(fallback); document.removeEventListener('visibilitychange', onHide); } };
+  document.addEventListener('visibilitychange', onHide);
+  window.location.href = amapNativeUrl(key);
 });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape' && state.openStop){ state.openStop = null; render(); } });
 
