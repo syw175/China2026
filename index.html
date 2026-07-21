@@ -441,7 +441,6 @@ function viewMap(city, day){
 
 function viewHotel(city){
   var ho = city.hotel, h = '<div>';
-  h += photo('gr-photo--1610', 'HOTEL.JPG');
   h += '<div class="gr-hotelname">'+esc(ho.name.main)+'</div>' + sub(ho.name);
   h += '<a class="gr-addr" '+mapAttrs(ho)+'><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
   h += '<div class="gr-facts">'
