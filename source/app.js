@@ -218,7 +218,7 @@ function viewCity(city){
 
 function viewDay(city, day){
   var h = '<div>';
-  h += '<div class="gr-days">' + city.days.map(function(d){
+  h += '<div class="gr-days" style="grid-template-columns:repeat('+city.days.length+',1fr)">' + city.days.map(function(d){
       return '<button class="gr-day'+(d.index===state.dayIdx?' on':'')+'" data-day="'+d.index+'">'
         + '<span class="gr-day-w">'+esc(d.dayLabel)+'</span>'
         + '<span class="gr-day-d">'+esc(d.date)+'</span></button>';
