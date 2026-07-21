@@ -482,9 +482,10 @@ document.addEventListener('click', function(e){
 });
 // Amap address links: on mobile, a tap opens the native Amap app via its URL
 // scheme (a user-gesture navigation iOS/Android will honor), searching the
-// place name + address. The href stays a uri.amap.com web link as the fallback
-// for desktop or when the app isn't installed; a visibilitychange guard cancels
-// that fallback once the app takes over so the itinerary tab is preserved.
+// place name + address. No timed web fallback here on purpose — on iOS the
+// "Open in Amap?" confirmation keeps the page visible, so any fallback timer
+// races the prompt and would clobber the itinerary tab. Desktop (no scheme)
+// opens the uri.amap.com web link in a new tab instead.
 function amapNativeUrl(key){
   var scheme = /Android/i.test(navigator.userAgent) ? 'androidamap' : 'iosamap';
   return scheme + '://poi?sourceApplication=ChinaTrip&name=' + encodeURIComponent(key) + '&dev=0';
@@ -492,20 +493,12 @@ function amapNativeUrl(key){
 document.addEventListener('click', function(e){
   var a = e.target.closest('a[data-key]');
   if(!a) return;
-  var web = a.getAttribute('href');
-  var key = a.getAttribute('data-key');
   e.preventDefault();
-  if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
-    window.open(web, '_blank', 'noopener'); // desktop: web map in a new tab, keep the itinerary
-    return;
+  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    window.location.href = amapNativeUrl(a.getAttribute('data-key')); // open the app; itinerary tab stays put
+  } else {
+    window.open(a.getAttribute('href'), '_blank', 'noopener'); // desktop: web map in a new tab
   }
-  var start = Date.now();
-  var fallback = setTimeout(function(){
-    if(!document.hidden && Date.now() - start < 2500) window.location.href = web;
-  }, 1200);
-  var onHide = function(){ if(document.hidden){ clearTimeout(fallback); document.removeEventListener('visibilitychange', onHide); } };
-  document.addEventListener('visibilitychange', onHide);
-  window.location.href = amapNativeUrl(key);
 });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape' && state.openStop){ state.openStop = null; render(); } });
 
