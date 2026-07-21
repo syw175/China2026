@@ -1,54 +1,114 @@
-// Browser-side helpers shared (inlined) into every design.
+// Browser-side helpers shared (inlined) into the build.
+// Ported from the Grid design bundle's framework-free itinerary-logic.js,
+// adapted to read the in-scope `TRIP` / `I18N` consts (not window.*).
 // Exposed as a string so the build can embed it verbatim.
 
 const SHARED_JS = `
-const state = { lang: 'en', city: 0, detail: null };
-
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function t(k){ const o = I18N[k]; return o ? o[state.lang] : k; }
-// bilingual name — EN mode shows "English 中文", 中文 mode shows Chinese only
-function nm(o){
-  if(!o) return '';
-  const en = esc(o.en||''), zh = esc(o.zh||'');
-  if(state.lang === 'zh') return zh || en;
-  if(zh && zh !== en) return en + '<span class="zh"> ' + zh + '</span>';
-  return en;
-}
-function nmText(o){ if(!o) return ''; return state.lang === 'zh' ? (o.zh||o.en||'') : (o.en||o.zh||''); }
-function tp(ty){ return t('type_'+ty); }
-function cat(ty){ return t('cat_'+ty); }
 
-const ICONS = {
-  activity: '<path d="M12 3l1.9 4.4L18 9l-4.1 1.6L12 15l-1.9-4.4L6 9l4.1-1.6L12 3Z"/>',
-  meal: '<path d="M6 3v5a2 2 0 0 0 4 0V3"/><path d="M8 8v13"/><path d="M17 3c-1.6 1-2.2 3-2.2 6s.2 4 2.2 4"/><path d="M17 3v18"/>',
-  sight: '<path d="M4 21h16"/><path d="M5.5 21v-8.5M9.5 21v-8.5M14.5 21v-8.5M18.5 21v-8.5"/><path d="M4 12.5h16L12 6 4 12.5Z"/>',
-  transit: '<rect x="6" y="3" width="12" height="13" rx="2.5"/><path d="M6 11h12"/><path d="M9.5 20l-2 2M14.5 20l2 2"/><circle cx="9" cy="13.5" r="1"/><circle cx="15" cy="13.5" r="1"/>',
-  pin: '<path d="M12 21s-6.5-5.2-6.5-10.5A6.5 6.5 0 0 1 18.5 10.5C18.5 15.8 12 21 12 21Z"/><circle cx="12" cy="10.3" r="2.4"/>',
-  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.2v5l3.2 1.9"/>',
-  cal: '<rect x="4" y="5.5" width="16" height="15" rx="2.5"/><path d="M4 10h16M8.5 3v4M15.5 3v4"/>',
-  chev: '<path d="M9 5.5l6.5 6.5L9 18.5"/>',
-  globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 2.6 14.6 0 17M12 3.5c-2.6 2.4-2.6 14.6 0 17"/>',
-  walk: '<circle cx="13" cy="4.5" r="1.6"/><path d="M11 21l1.5-5-2-2 1-5 3 2 2 1M9 21l2-6"/>',
-  phone: '<path d="M6.8 3.5c-1 0-1.9.8-1.9 1.9 0 8.1 6.6 14.7 14.7 14.7 1.1 0 1.9-.9 1.9-1.9v-2.5c0-.9-.7-1.7-1.6-1.8l-2.6-.3c-.5-.06-1.05.13-1.4.5l-1 1a12.5 12.5 0 0 1-5.1-5.1l1-1c.37-.36.56-.9.5-1.4l-.3-2.6c-.1-.9-.9-1.6-1.8-1.6Z"/>',
-  wifi: '<path d="M2.6 8.6a15 15 0 0 1 18.8 0M5.6 12.1a10 10 0 0 1 12.8 0M8.6 15.5a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19" r="1.1"/>',
-  nav: '<path d="M20.5 3.5 3.8 10.4c-.7.3-.6 1.3.1 1.5l6.7 1.9 1.9 6.7c.2.7 1.2.8 1.5.1L20.5 3.5Z"/><path d="M20.5 3.5 11 13"/>',
-  admin: '<path d="M9 4.5H6.5A1.5 1.5 0 0 0 5 6v13.5A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H15"/><rect x="9" y="3" width="6" height="3.5" rx="1"/><path d="M9 13.5l2.2 2.2 4-4.7"/>',
-  shopping: '<path d="M5.5 8h13l-1.1 12a1.5 1.5 0 0 1-1.5 1.4H8.1A1.5 1.5 0 0 1 6.6 20L5.5 8Z"/><path d="M9 10.5V6.5a3 3 0 0 1 6 0v4"/>',
-  wellness: '<path d="M12 20.5c-4.8 0-8-2.9-8.5-6.8 2.8.2 5 1.3 6.4 2.8C10.2 13 11 9 12 6.3c1 2.7 1.8 6.7 2.1 10.2 1.4-1.5 3.6-2.6 6.4-2.8-.5 3.9-3.7 6.8-8.5 6.8Z"/>',
-  show: '<path d="M4 8.5V7a1.5 1.5 0 0 1 1.5-1.5h13A1.5 1.5 0 0 1 20 7v1.5a2.5 2.5 0 0 0 0 7V17a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17v-1.5a2.5 2.5 0 0 0 0-7Z"/><path d="M14.5 5.5v2.2M14.5 10.9v2.2M14.5 16.3v2.2"/>',
-  craft: '<circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><path d="M8 7.6 12 12M20 4 8 16.4M14.7 14.7 20 20"/>',
-  rest: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/>',
-};
-function icon(name, cls){ return '<svg class="ic '+(cls||'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[name]||'')+'</svg>'; }
-
-// A hyperlinked address that opens the maps URL in a new tab.
-function addrLink(a, cls){
-  if(!a) return '';
-  return '<a class="addr '+(cls||'')+'" href="'+esc(a.mapUrl)+'" target="_blank" rel="noopener">'
-    + icon('pin') + '<span>' + esc(a.text) + '</span></a>';
+const MONTHS = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
+function parseTripDate(str, year){
+  const m = String(str).trim().match(/^([A-Za-z]{3})\\s+(\\d{1,2})/);
+  if(!m) return null;
+  const mo = MONTHS[m[1]];
+  if(mo == null) return null;
+  return new Date(year, mo, parseInt(m[2], 10));
 }
 
-const city = () => TRIP.cities[state.city];
+// bilingual — EN mode returns {main:english, sub:chinese}; ZH mode returns {main:chinese, sub:''}
+function bilingual(obj, lang){
+  if(!obj) return { main:'', sub:'' };
+  if(lang === 'zh') return { main: obj.zh || obj.en || '', sub:'' };
+  const sub = obj.zh && obj.zh !== obj.en ? obj.zh : '';
+  return { main: obj.en || obj.zh || '', sub };
+}
+function t(key, lang){ const o = I18N[key]; return o ? (o[lang] || o.en) : key; }
+
+function formatNear(n, lang){
+  return {
+    typeLabel: t('cat_' + n.type, lang) || n.type,
+    name: bilingual(n.name, lang),
+    note: bilingual(n.note, lang).main,
+    addrText: n.address ? n.address.text : '',
+    mapUrl: n.address ? n.address.mapUrl : '',
+  };
+}
+function formatItem(it, lang){
+  return {
+    id: it.id,
+    time: it.time,
+    typeLabel: t('type_' + it.type, lang) || it.type,
+    type: it.type,
+    name: bilingual(it.name, lang),
+    hood: bilingual(it.neighborhood, lang),
+    desc: bilingual(it.desc, lang).main,
+    addrText: it.address ? it.address.text : '',
+    mapUrl: it.address ? it.address.mapUrl : '',
+    booking: !!it.bookingRequired,
+    bookingLabel: it.bookingRequired ? t('bookingRequired', lang) : t('noBooking', lang),
+    nearby: (it.nearby || []).map(n => formatNear(n, lang)),
+  };
+}
+function formatDay(day, idx, lang, todayIdx){
+  return {
+    index: idx,
+    dayNum: idx + 1,
+    dayLabel: day.dayLabel,
+    date: day.date,
+    isToday: idx === todayIdx,
+    title: bilingual(day.title, lang),
+    items: day.items.map(it => formatItem(it, lang)),
+  };
+}
+function computeTodayIndex(days, year){
+  const now = new Date();
+  const todayKey = now.getFullYear() * 372 + now.getMonth() * 31 + now.getDate();
+  for(let i = 0; i < days.length; i++){
+    const d = parseTripDate(days[i].date, year);
+    if(!d) continue;
+    const key = d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate();
+    if(key === todayKey) return i;
+  }
+  return -1;
+}
+function formatHotel(hotel, lang){
+  return {
+    name: bilingual(hotel.name, lang),
+    addrText: hotel.address.text,
+    mapUrl: hotel.address.mapUrl,
+    phone: hotel.phone,
+    confirmation: hotel.confirmation,
+    checkInTime: hotel.checkIn.time,
+    checkInNote: bilingual(hotel.checkIn.note, lang).main,
+    checkOutTime: hotel.checkOut.time,
+    checkOutNote: bilingual(hotel.checkOut.note, lang).main,
+    wifi: bilingual(hotel.wifi, lang).main,
+    notes: (hotel.notes || []).map(n => bilingual(n, lang).main),
+    nearby: (hotel.nearby || []).map(n => formatNear(n, lang)),
+  };
+}
+function formatCity(city, lang){
+  const todayIdx = computeTodayIndex(city.days, 2026);
+  const days = city.days.map((d, i) => formatDay(d, i, lang, todayIdx));
+  return {
+    id: city.id,
+    name: bilingual(city.name, lang),
+    dateRange: city.dateRange,
+    todayIdx,
+    days,
+    dayCount: days.length,
+    stopCount: days.reduce((n, d) => n + d.items.length, 0),
+    mustEats: city.mustEats.map(m => ({ name: bilingual(m.name, lang), note: bilingual(m.note, lang).main })),
+    hotel: formatHotel(city.hotel, lang),
+  };
+}
+function loadTrip(lang){
+  return {
+    tripTitle: bilingual(TRIP.title, lang).main,
+    dates: TRIP.dates[lang] || TRIP.dates.en,
+    cities: TRIP.cities.map(c => formatCity(c, lang)),
+  };
+}
 `;
 
 module.exports = { SHARED_JS };
