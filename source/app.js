@@ -35,7 +35,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .gr-scroll::-webkit-scrollbar{display:none}
 .gr-scroll{scrollbar-width:none}
 
-.gr-frame{width:100vw;height:100vh;background:var(--paper);display:flex;flex-direction:column;
+.gr-frame{width:100vw;height:100vh;height:100dvh;background:var(--paper);display:flex;flex-direction:column;
   overflow:hidden;position:relative}
 @media (min-width:640px){
   .gr-frame{max-width:460px;height:min(920px,94vh);margin:3vh auto;
@@ -43,7 +43,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 }
 
 /* header + city switcher */
-.gr-header{flex:none;padding:18px 20px 0;border-bottom:2px solid var(--ink)}
+.gr-header{flex:none;padding:18px 20px 0;padding-top:calc(18px + env(safe-area-inset-top, 0px));border-bottom:2px solid var(--ink)}
 .gr-header-top{display:flex;align-items:flex-start;justify-content:space-between}
 .gr-title{font:700 22px/1.05 var(--grotesk);letter-spacing:-.01em}
 .gr-lang{font:600 10px/1 var(--mono);letter-spacing:.05em;background:var(--ink);color:var(--near2);
@@ -152,7 +152,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 
 /* bottom tab bar */
 .gr-tabs{flex:none;display:grid;grid-template-columns:repeat(4,1fr);
-  border-top:2px solid var(--ink);background:var(--paper)}
+  border-top:2px solid var(--ink);background:var(--paper);padding-bottom:env(safe-area-inset-bottom, 0px)}
 .gr-tab{padding:12px 0 14px;background:transparent;border:none;
   font:600 11px/1 var(--mono);letter-spacing:.03em;color:var(--ink)}
 .gr-tab.on{background:var(--ink);color:oklch(98% .01 70)}
