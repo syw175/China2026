@@ -39,15 +39,14 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 /* visible keyboard focus (ink stays legible on paper and on accent fills) */
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 /* press feedback (tap-highlight is disabled, so restore a "tap registered" cue) */
-.gr-city,.gr-day,.gr-tab,.gr-stop,.gr-cta,.gr-seg button,.gr-maprow,.gr-nearrow,.gr-addr,.gr-doc,.gr-tel,.gr-lang,.gr-close,.gr-hotel-cta{transition:background .12s ease,opacity .12s ease}
-.gr-city:active,.gr-day:active,.gr-tab:active,.gr-stop:active,.gr-cta:active,.gr-seg button:active,.gr-maprow:active,.gr-nearrow:active,.gr-addr:active,.gr-doc:active,.gr-tel:active,.gr-lang:active,.gr-close:active{opacity:.6}
+.gr-city,.gr-day,.gr-tab,.gr-stop,.gr-seg button,.gr-maprow,.gr-nearrow,.gr-addr,.gr-doc,.gr-tel,.gr-lang,.gr-close,.gr-hotel-cta{transition:background .12s ease,opacity .12s ease}
+.gr-city:active,.gr-day:active,.gr-tab:active,.gr-stop:active,.gr-seg button:active,.gr-maprow:active,.gr-nearrow:active,.gr-addr:active,.gr-doc:active,.gr-tel:active,.gr-lang:active,.gr-close:active{opacity:.6}
 /* hover feedback, real-hover devices only (avoids sticky hover on touch) */
 @media (hover:hover){
   .gr-city:not(.on):hover,.gr-tab:not(.on):hover,.gr-seg button:not(.on):hover{background:oklch(92% .012 70)}
   .gr-day:not(.on):hover{background:oklch(93% .012 70)}
   .gr-stop:hover,.gr-maprow:hover,.gr-nearrow:hover{background:oklch(95% .012 70)}
   .gr-addr:hover,.gr-doc:hover,.gr-tel:hover{text-decoration:underline}
-  .gr-cta:hover{filter:brightness(1.06)}
 }
 /* hero photos fade in as they decode */
 .gr-photo-img{opacity:0;transition:opacity .35s ease}
@@ -106,11 +105,6 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-eat-n{font:600 13px/1.3 var(--grotesk)}
 .gr-eat-note{font:400 11px/1.4 var(--sans);color:var(--muted2);margin-top:3px}
 .gr-taste{margin-top:28px}
-.gr-cta{margin-top:26px;width:100%;display:flex;align-items:center;justify-content:space-between;
-  border:2px solid var(--ink);padding:14px 16px;background:var(--accent);color:oklch(98% .01 70);text-align:left}
-.gr-cta-k{display:block;font:600 10px/1 var(--mono);letter-spacing:.05em}
-.gr-cta-v{display:block;font:700 15px/1.3 var(--grotesk);margin-top:5px}
-.gr-cta-arrow{font:700 18px/1 var(--grotesk)}
 
 /* days tab */
 .gr-days{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid var(--ink)}
@@ -184,11 +178,14 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 /* stop overlay */
 .gr-overlay{position:absolute;inset:0;background:oklch(15% .01 90 / .6);
   display:flex;align-items:flex-end;z-index:10}
-.gr-sheet{width:100%;max-height:82%;background:var(--sheet);border-top:3px solid var(--ink);
-  overflow-y:auto;padding:22px 20px 30px}
-.gr-close-row{display:flex;justify-content:flex-end}
-.gr-close{background:var(--ink);color:var(--near2);border:none;font:700 13px/1 var(--mono);padding:7px 10px}
-.gr-sheet .gr-photo{margin-top:14px}
+.gr-sheet{width:100%;height:82%;background:var(--sheet);border-top:3px solid var(--ink);
+  display:flex;flex-direction:column;overflow:hidden}
+.gr-close-row{flex:none;display:flex;justify-content:flex-end;
+  padding:calc(12px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) 12px 20px}
+.gr-close{min-width:44px;min-height:44px;background:var(--ink);color:var(--near2);border:none;font:700 13px/1 var(--mono);padding:12px 14px}
+.gr-sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  padding:0 20px calc(30px + env(safe-area-inset-bottom, 0px))}
+.gr-sheet-body .gr-photo{margin-top:14px}
 .gr-stopmeta{font:600 10px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;
   color:var(--muted);margin-top:16px}
 .gr-stopname{font:700 24px/1.2 var(--grotesk);margin-top:6px}
@@ -208,7 +205,17 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 
 const JS = SHARED_JS + `
 var ACCENTS = ['oklch(58% .16 35)','oklch(52% .13 150)','oklch(48% .13 260)'];
-var state = { lang:'en', cityIdx:0, tab:'city', dayIdx:0, openStop:null, mapScope:'day' };
+var LANGUAGE_STORAGE_KEY = 'china2026.language';
+function loadLanguage(){
+  try{
+    var stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    return stored==='en' || stored==='zh' ? stored : 'en';
+  }catch(e){ return 'en'; }
+}
+function saveLanguage(lang){
+  try{ window.localStorage.setItem(LANGUAGE_STORAGE_KEY,lang); }catch(e){}
+}
+var state = { lang:loadLanguage(), cityIdx:0, tab:'city', dayIdx:0, openStop:null, mapScope:'day' };
 var root;
 var lastTrigger = null; // stop-row id that opened the dialog, for focus restore
 
@@ -275,9 +282,6 @@ function viewCity(city){
       return '<div class="gr-eat"><div class="gr-eat-n">'+esc(m.name.main)+'</div>'
         + '<div class="gr-eat-note">'+esc(m.note)+'</div></div>';
     }).join('') + '</div>';
-  h += '<button class="gr-cta" data-tab="hotel"><span><span class="gr-cta-k">'+up(t('stay',state.lang))+'</span>'
-     + '<span class="gr-cta-v">'+esc(city.hotel.name.main)+'</span></span>'
-     + '<span class="gr-cta-arrow">&#8594;</span></button>';
   return h + '</div>';
 }
 
@@ -350,7 +354,8 @@ function viewHotel(city){
 function overlay(stop){
   if(!stop) return '';
   var h = '<div class="gr-overlay" data-backdrop><div class="gr-sheet" role="dialog" aria-modal="true" aria-labelledby="gr-stop-title">';
-  h += '<div class="gr-close-row"><button class="gr-close" data-close aria-label="'+esc(t('close',state.lang))+'">CLOSE</button></div>';
+  h += '<div class="gr-close-row"><button class="gr-close" data-close aria-label="'+esc(t('close',state.lang))+'">'+esc(t('close',state.lang))+'</button></div>';
+  h += '<div class="gr-sheet-body">';
   h += stopPhoto(stop);
   h += '<div class="gr-stopmeta">'+esc(stop.time)+' / '+up(stop.typeLabel)+'</div>';
   h += '<h2 class="gr-stopname" id="gr-stop-title">'+esc(stop.name.main)+'</h2>'
@@ -362,7 +367,7 @@ function overlay(stop){
     h += '<h3 class="gr-sechead gr-nearby-sec">'+up(t('nearby',state.lang))+'</h3>'
        + '<div class="gr-nearby">' + stop.nearby.map(function(n){ return nearRow(n, true); }).join('') + '</div>';
   }
-  return h + '</div></div>';
+  return h + '</div></div></div>';
 }
 
 function render(){
@@ -395,11 +400,11 @@ function render(){
   var body = '<div class="gr-scroll">'+panel+'</div>';
 
   var ac = function(name){ return state.tab===name ? ' aria-current="page"' : ''; };
-  var tabs = '<nav class="gr-tabs" aria-label="Sections">'
-    + '<button class="gr-tab'+(state.tab==='city'?' on':'')+'" data-tab="city"'+ac('city')+'>01 CITY</button>'
-    + '<button class="gr-tab'+(state.tab==='day'?' on':'')+'" data-tab="day"'+ac('day')+'>02 DAYS</button>'
-    + '<button class="gr-tab'+(state.tab==='map'?' on':'')+'" data-tab="map"'+ac('map')+'>03 MAP</button>'
-    + '<button class="gr-tab'+(state.tab==='hotel'?' on':'')+'" data-tab="hotel"'+ac('hotel')+'>04 STAY</button>'
+  var tabs = '<nav class="gr-tabs" aria-label="'+esc(t('sectionsNav',state.lang))+'">'
+    + '<button class="gr-tab'+(state.tab==='city'?' on':'')+'" data-tab="city"'+ac('city')+'>'+esc(t('tabCity',state.lang))+'</button>'
+    + '<button class="gr-tab'+(state.tab==='day'?' on':'')+'" data-tab="day"'+ac('day')+'>'+esc(t('tabDay',state.lang))+'</button>'
+    + '<button class="gr-tab'+(state.tab==='map'?' on':'')+'" data-tab="map"'+ac('map')+'>'+esc(t('tabMap',state.lang))+'</button>'
+    + '<button class="gr-tab'+(state.tab==='hotel'?' on':'')+'" data-tab="hotel"'+ac('hotel')+'>'+esc(t('tabStay',state.lang))+'</button>'
     + '</nav>';
 
   root.innerHTML = head + body + tabs + overlay(stop);
@@ -413,7 +418,7 @@ function render(){
 
 document.addEventListener('click', function(e){
   var el;
-  if(e.target.closest('[data-lang-toggle]')){ state.lang = state.lang==='en'?'zh':'en'; document.documentElement.lang = state.lang; render(); return; }
+  if(e.target.closest('[data-lang-toggle]')){ state.lang = state.lang==='en'?'zh':'en'; saveLanguage(state.lang); document.documentElement.lang = state.lang; render(); return; }
   if((el=e.target.closest('[data-city]'))){ state.cityIdx = +el.dataset.city; state.dayIdx = 0; state.openStop = null; render(); return; }
   if((el=e.target.closest('[data-tab]'))){ state.tab = el.dataset.tab; state.openStop = null; render(); return; }
   if((el=e.target.closest('[data-day]'))){ state.dayIdx = +el.dataset.day; state.openStop = null; render(); return; }
