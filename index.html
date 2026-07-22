@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preload" href="fonts/SpaceGrotesk.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/IBMPlexSans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/IBMPlexMono.woff2" as="font" type="font/woff2" crossorigin>
 <title>Family China Trip · 家庭中国之旅</title>
 <meta name="theme-color" content="#e9e3d6">
 <style>
@@ -35,8 +38,29 @@ html,body{margin:0;padding:0}
 body{background:var(--page);font-family:var(--sans);color:var(--ink)}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer;color:inherit}
+h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control appearance */
 .gr-scroll::-webkit-scrollbar{display:none}
 .gr-scroll{scrollbar-width:none}
+
+/* visible keyboard focus (ink stays legible on paper and on accent fills) */
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+/* press feedback (tap-highlight is disabled, so restore a "tap registered" cue) */
+.gr-city,.gr-day,.gr-tab,.gr-stop,.gr-cta,.gr-seg button,.gr-maprow,.gr-nearrow,.gr-addr,.gr-doc,.gr-tel,.gr-lang,.gr-close,.gr-hotel-cta{transition:background .12s ease,opacity .12s ease}
+.gr-city:active,.gr-day:active,.gr-tab:active,.gr-stop:active,.gr-cta:active,.gr-seg button:active,.gr-maprow:active,.gr-nearrow:active,.gr-addr:active,.gr-doc:active,.gr-tel:active,.gr-lang:active,.gr-close:active{opacity:.6}
+/* hover feedback, real-hover devices only (avoids sticky hover on touch) */
+@media (hover:hover){
+  .gr-city:not(.on):hover,.gr-tab:not(.on):hover,.gr-seg button:not(.on):hover{background:oklch(92% .012 70)}
+  .gr-day:not(.on):hover{background:oklch(93% .012 70)}
+  .gr-stop:hover,.gr-maprow:hover,.gr-nearrow:hover{background:oklch(95% .012 70)}
+  .gr-addr:hover,.gr-doc:hover,.gr-tel:hover{text-decoration:underline}
+  .gr-cta:hover{filter:brightness(1.06)}
+}
+/* hero photos fade in as they decode */
+.gr-photo-img{opacity:0;transition:opacity .35s ease}
+/* subtle content entrance on each view swap */
+@media (prefers-reduced-motion:no-preference){ .gr-scroll{animation:grIn .18s ease} }
+@keyframes grIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} .gr-photo-img{opacity:1} }
 
 .gr-frame{width:100vw;height:100vh;height:100dvh;background:var(--paper);display:flex;flex-direction:column;
   overflow:hidden;position:relative}
@@ -343,13 +367,17 @@ function loadTrip(lang){
 var ACCENTS = ['oklch(58% .16 35)','oklch(52% .13 150)','oklch(48% .13 260)'];
 var state = { lang:'en', cityIdx:0, tab:'city', dayIdx:0, openStop:null, mapScope:'day' };
 var root;
+var lastTrigger = null; // stop-row id that opened the dialog, for focus restore
 
 function up(s){ return String(s==null?'':s).toUpperCase(); }
 function sub(o){ return o.sub ? '<div class="gr-sub">'+esc(o.sub)+'</div>' : ''; }
 // Real photo when src is given (object-fit:cover fills the fixed aspect box on
 // any device), else the striped placeholder + mono filename caption.
-function photo(mod, cap, src){
-  if(src) return '<div class="gr-photo '+mod+'"><img class="gr-photo-img" src="'+esc(src)+'" alt="" loading="lazy" decoding="async"></div>';
+function photo(mod, cap, src, alt, eager){
+  if(src){
+    var load = eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
+    return '<div class="gr-photo '+mod+'"><img class="gr-photo-img" src="'+esc(src)+'" alt="'+esc(alt||'')+'" '+load+' decoding="async" onload="this.style.opacity=1"></div>';
+  }
   return '<div class="gr-photo '+mod+'"><span class="gr-photo-cap">'+esc(cap)+'</span></div>';
 }
 function cityImg(id){ return 'images/' + id + '-city.webp'; }
@@ -382,14 +410,14 @@ function nearRow(n, withType){
 
 function viewCity(city){
   var h = '<div>';
-  h += photo('gr-photo--1610', city.name.main + '_CITY.JPG', cityImg(city.id));
-  h += '<div class="gr-cityname">'+esc(city.name.main)+'</div>' + sub(city.name);
+  h += photo('gr-photo--1610', city.name.main + '_CITY.JPG', cityImg(city.id), city.name.main, true);
+  h += '<h2 class="gr-cityname">'+esc(city.name.main)+'</h2>' + sub(city.name);
   h += '<div class="gr-stats">'
      + '<div class="gr-stat"><div class="gr-stat-k">DATES</div><div class="gr-stat-v">'+esc(city.dateRange)+'</div></div>'
      + '<div class="gr-stat"><div class="gr-stat-k">DAYS</div><div class="gr-stat-v">'+city.dayCount+'</div></div>'
      + '<div class="gr-stat"><div class="gr-stat-k">STOPS</div><div class="gr-stat-v">'+city.stopCount+'</div></div>'
      + '</div>';
-  h += '<div class="gr-sechead gr-taste">'+up(t('mustEatTitle',state.lang)+' '+city.name.main)+'</div>';
+  h += '<h3 class="gr-sechead gr-taste">'+up(t('mustEatTitle',state.lang)+' '+city.name.main)+'</h3>';
   h += '<div class="gr-eats">' + city.mustEats.map(function(m){
       return '<div class="gr-eat"><div class="gr-eat-n">'+esc(m.name.main)+'</div>'
         + '<div class="gr-eat-note">'+esc(m.note)+'</div></div>';
@@ -403,13 +431,13 @@ function viewCity(city){
 function viewDay(city, day){
   var h = '<div>';
   h += '<div class="gr-days" style="grid-template-columns:repeat('+city.days.length+',1fr)">' + city.days.map(function(d){
-      return '<button class="gr-day'+(d.index===state.dayIdx?' on':'')+'" data-day="'+d.index+'">'
+      return '<button class="gr-day'+(d.index===state.dayIdx?' on':'')+'" data-day="'+d.index+'"'+(d.index===state.dayIdx?' aria-current="true"':'')+'>'
         + '<span class="gr-day-w">'+esc(d.dayLabel)+'</span>'
         + '<span class="gr-day-d">'+esc(d.date)+'</span></button>';
     }).join('') + '</div>';
   if(day.isToday) h += '<div class="gr-today">TODAY</div>';
-  h += '<div class="gr-dayhero">' + photo('gr-photo--169', 'DAY_'+day.dayNum+'.JPG', dayImg(city.id, day.index)) + '</div>';
-  h += '<div class="gr-daytitle">'+esc(day.title.main)+'</div>' + sub(day.title);
+  h += '<div class="gr-dayhero">' + photo('gr-photo--169', 'DAY_'+day.dayNum+'.JPG', dayImg(city.id, day.index), day.title.main) + '</div>';
+  h += '<h2 class="gr-daytitle">'+esc(day.title.main)+'</h2>' + sub(day.title);
   h += '<div class="gr-stops">' + day.items.map(function(it){
       return '<button class="gr-stop" data-open="'+esc(it.id)+'">'
         + '<div class="gr-stop-time">'+esc(it.time)+'</div>'
@@ -427,7 +455,7 @@ function viewDay(city, day){
 function viewMap(city, day){
   var items = state.mapScope === 'day' ? day.items : city.days.reduce(function(a,d){ return a.concat(d.items); }, []);
   var h = '<div>';
-  h += '<div class="gr-h1">MAP</div><div class="gr-maphint">EVERY STOP &#8212; TAP TO OPEN IN MAPS</div>';
+  h += '<h2 class="gr-h1">MAP</h2><div class="gr-maphint">EVERY STOP &#8212; TAP TO OPEN IN MAPS</div>';
   h += '<div class="gr-seg">'
      + '<button data-mapscope="day" class="'+(state.mapScope==='day'?'on':'')+'">'+esc(day.dayLabel+' '+day.date)+'</button>'
      + '<button data-mapscope="city" class="'+(state.mapScope==='city'?'on':'')+'">'+esc(city.name.main)+'</button>'
@@ -443,7 +471,7 @@ function viewMap(city, day){
 
 function viewHotel(city){
   var ho = city.hotel, h = '<div>';
-  h += '<div class="gr-hotelname">'+esc(ho.name.main)+'</div>' + sub(ho.name);
+  h += '<h2 class="gr-hotelname">'+esc(ho.name.main)+'</h2>' + sub(ho.name);
   h += '<a class="gr-addr" '+mapAttrs(ho)+'><span>'+esc(ho.addrText)+'</span><span>&#8594;</span></a>';
   h += '<div class="gr-facts">'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkIn',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkInTime)+'</div></div>'
@@ -456,11 +484,11 @@ function viewHotel(city){
   h += '<div class="gr-conf">CONF# '+esc(ho.confirmation)+'</div>';
   if(ho.checkInNote) h += '<div class="gr-note">'+esc(ho.checkInNote)+'</div>';
   if(ho.notes.length){
-    h += '<div class="gr-sechead gr-goodtoknow">'+up(t('goodToKnow',state.lang))+'</div>'
+    h += '<h3 class="gr-sechead gr-goodtoknow">'+up(t('goodToKnow',state.lang))+'</h3>'
        + '<ul class="gr-notes">' + ho.notes.map(function(n){ return '<li>'+esc(n)+'</li>'; }).join('') + '</ul>';
   }
   if(ho.nearby.length){
-    h += '<div class="gr-sechead gr-nearby-sec">'+up(t('nearbyHotel',state.lang))+'</div>'
+    h += '<h3 class="gr-sechead gr-nearby-sec">'+up(t('nearbyHotel',state.lang))+'</h3>'
        + '<div class="gr-nearby">' + ho.nearby.map(function(n){ return nearRow(n, false); }).join('') + '</div>';
   }
   return h + '</div>';
@@ -468,17 +496,17 @@ function viewHotel(city){
 
 function overlay(stop){
   if(!stop) return '';
-  var h = '<div class="gr-overlay" data-backdrop><div class="gr-sheet">';
-  h += '<div class="gr-close-row"><button class="gr-close" data-close>CLOSE</button></div>';
+  var h = '<div class="gr-overlay" data-backdrop><div class="gr-sheet" role="dialog" aria-modal="true" aria-labelledby="gr-stop-title">';
+  h += '<div class="gr-close-row"><button class="gr-close" data-close aria-label="'+esc(t('close',state.lang))+'">CLOSE</button></div>';
   h += photo('gr-photo--1610', 'STOP.JPG');
   h += '<div class="gr-stopmeta">'+esc(stop.time)+' / '+up(stop.typeLabel)+'</div>';
-  h += '<div class="gr-stopname">'+esc(stop.name.main)+'</div>'
+  h += '<h2 class="gr-stopname" id="gr-stop-title">'+esc(stop.name.main)+'</h2>'
      + (stop.name.sub ? '<div class="gr-stopname-sub">'+esc(stop.name.sub)+'</div>' : '');
   if(stop.booking) h += '<div class="gr-chip">'+esc(stop.bookingLabel)+'</div>';
   if(stop.desc) h += '<div class="gr-stopdesc">'+esc(stop.desc)+'</div>';
   h += '<a class="gr-addr" '+mapAttrs(stop)+'><span>'+esc(stop.addrText)+'</span><span>&#8594;</span></a>';
   if(stop.nearby.length){
-    h += '<div class="gr-sechead gr-nearby-sec">'+up(t('nearby',state.lang))+'</div>'
+    h += '<h3 class="gr-sechead gr-nearby-sec">'+up(t('nearby',state.lang))+'</h3>'
        + '<div class="gr-nearby">' + stop.nearby.map(function(n){ return nearRow(n, true); }).join('') + '</div>';
   }
   return h + '</div></div>';
@@ -498,13 +526,14 @@ function render(){
     if(!stop) state.openStop = null;
   }
 
+  var langLabel = state.lang==='en' ? 'Switch to Chinese' : '切换到英文';
   var head = '<div class="gr-header"><div class="gr-header-top">'
-    + '<div class="gr-title">'+esc(data.tripTitle)+'</div>'
-    + '<button class="gr-lang" data-lang-toggle>'+(state.lang==='en'?'中文':'EN')+'</button></div>'
+    + '<h1 class="gr-title">'+esc(data.tripTitle)+'</h1>'
+    + '<button class="gr-lang" data-lang-toggle aria-label="'+esc(langLabel)+'">'+(state.lang==='en'?'中文':'EN')+'</button></div>'
     + '<div class="gr-dates">'+esc(data.dates)+'</div>'
-    + '<div class="gr-cities">' + data.cities.map(function(c,i){
-        return '<button class="gr-city'+(i===state.cityIdx?' on':'')+'" data-city="'+i+'">'+esc(c.name.main)+'</button>';
-      }).join('') + '</div></div>';
+    + '<nav class="gr-cities" aria-label="Cities">' + data.cities.map(function(c,i){
+        return '<button class="gr-city'+(i===state.cityIdx?' on':'')+'" data-city="'+i+'"'+(i===state.cityIdx?' aria-current="true"':'')+'>'+esc(c.name.main)+'</button>';
+      }).join('') + '</nav></div>';
 
   var panel = state.tab==='city' ? viewCity(city)
             : state.tab==='day' ? viewDay(city, day)
@@ -512,14 +541,21 @@ function render(){
             : viewHotel(city);
   var body = '<div class="gr-scroll">'+panel+'</div>';
 
-  var tabs = '<div class="gr-tabs">'
-    + '<button class="gr-tab'+(state.tab==='city'?' on':'')+'" data-tab="city">01 CITY</button>'
-    + '<button class="gr-tab'+(state.tab==='day'?' on':'')+'" data-tab="day">02 DAYS</button>'
-    + '<button class="gr-tab'+(state.tab==='map'?' on':'')+'" data-tab="map">03 MAP</button>'
-    + '<button class="gr-tab'+(state.tab==='hotel'?' on':'')+'" data-tab="hotel">04 STAY</button>'
-    + '</div>';
+  var ac = function(name){ return state.tab===name ? ' aria-current="page"' : ''; };
+  var tabs = '<nav class="gr-tabs" aria-label="Sections">'
+    + '<button class="gr-tab'+(state.tab==='city'?' on':'')+'" data-tab="city"'+ac('city')+'>01 CITY</button>'
+    + '<button class="gr-tab'+(state.tab==='day'?' on':'')+'" data-tab="day"'+ac('day')+'>02 DAYS</button>'
+    + '<button class="gr-tab'+(state.tab==='map'?' on':'')+'" data-tab="map"'+ac('map')+'>03 MAP</button>'
+    + '<button class="gr-tab'+(state.tab==='hotel'?' on':'')+'" data-tab="hotel"'+ac('hotel')+'>04 STAY</button>'
+    + '</nav>';
 
   root.innerHTML = head + body + tabs + overlay(stop);
+  // reveal any already-cached hero images immediately (onload won't refire)
+  var imgs = root.querySelectorAll('.gr-photo-img');
+  for(var k=0;k<imgs.length;k++){ if(imgs[k].complete) imgs[k].style.opacity=1; }
+  // dialog focus management: move focus into the sheet on open
+  if(stop){ var cl = root.querySelector('[data-close]'); if(cl) cl.focus(); }
+  else if(lastTrigger){ var tr = root.querySelector('[data-open="'+lastTrigger+'"]'); if(tr) tr.focus(); lastTrigger=null; }
 }
 
 document.addEventListener('click', function(e){
@@ -529,7 +565,7 @@ document.addEventListener('click', function(e){
   if((el=e.target.closest('[data-tab]'))){ state.tab = el.dataset.tab; state.openStop = null; render(); return; }
   if((el=e.target.closest('[data-day]'))){ state.dayIdx = +el.dataset.day; state.openStop = null; render(); return; }
   if((el=e.target.closest('[data-mapscope]'))){ state.mapScope = el.dataset.mapscope; render(); return; }
-  if((el=e.target.closest('[data-open]'))){ state.openStop = el.dataset.open; render(); return; }
+  if((el=e.target.closest('[data-open]'))){ state.openStop = el.dataset.open; lastTrigger = el.dataset.open; render(); return; }
   if(e.target.closest('[data-close]')){ state.openStop = null; render(); return; }
   if(e.target.hasAttribute('data-backdrop')){ state.openStop = null; render(); return; }
 });
@@ -560,7 +596,18 @@ document.addEventListener('click', function(e){
     window.open(a.getAttribute('href'), '_blank', 'noopener'); // Android auto-launches app from H5; desktop shows map
   }
 });
-document.addEventListener('keydown', function(e){ if(e.key==='Escape' && state.openStop){ state.openStop = null; render(); } });
+document.addEventListener('keydown', function(e){
+  if(!state.openStop) return;
+  if(e.key==='Escape'){ state.openStop = null; render(); return; }
+  if(e.key==='Tab'){ // keep focus inside the dialog
+    var sheet = root.querySelector('.gr-sheet'); if(!sheet) return;
+    var f = sheet.querySelectorAll('button:not([disabled]), a[href]');
+    if(!f.length) return;
+    var first = f[0], last = f[f.length-1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+});
 
 root = document.getElementById('gr-root');
 document.documentElement.lang = state.lang;

@@ -15,8 +15,12 @@ const OUT = path.join(__dirname, '..', 'index.html');
 const DATA_JSON = { TRIP: JSON.stringify(TRIP), I18N: JSON.stringify(I18N), GEO: JSON.stringify(GEO) };
 
 function fullDoc(inner) {
+  const preload = ['SpaceGrotesk', 'IBMPlexSans', 'IBMPlexMono']
+    .map(f => '<link rel="preload" href="fonts/' + f + '.woff2" as="font" type="font/woff2" crossorigin>')
+    .join('\n');
   return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
     + '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
+    + preload + '\n'
     + inner + '\n</body>\n</html>\n';
 }
 
