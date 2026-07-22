@@ -105,6 +105,32 @@ function formatDayDate(date, lang){
   if(!match) return date;
   return (match[1] === 'Jul' ? '7' : '8') + '月' + parseInt(match[2], 10) + '日';
 }
+function compactTripDates(dates, lang){
+  if(lang === 'zh'){
+    const match = String(dates).match(/(\\d+)\\s*月\\s*(\\d+)\\s*日\\s*[–—-]\\s*(\\d+)\\s*月\\s*(\\d+)\\s*日/);
+    return match ? match[1] + '月' + parseInt(match[2], 10) + '日—' + match[3] + '月' + parseInt(match[4], 10) + '日' : dates;
+  }
+  const match = String(dates).match(/([A-Za-z]{3})\\s+(\\d+)\\s*[–—-]\\s*([A-Za-z]{3})\\s+(\\d+)/);
+  return match ? parseInt(match[2], 10) + ' ' + match[1] + ' — ' + parseInt(match[4], 10) + ' ' + match[3] : dates;
+}
+function compactDayLabel(day, lang){
+  const match = String(day.date || '').match(/(\\d{1,2})(?:日)?$/);
+  const weekday = lang === 'zh' ? day.dayLabel : String(day.dayLabel || '').toUpperCase();
+  return match ? weekday + ' ' + parseInt(match[1], 10) : weekday;
+}
+function dayHeadingParts(day, lang){
+  if(lang === 'zh'){
+    const match = String(day.date || '').match(/^(\\d{1,2})月(\\d{1,2})日$/);
+    if(!match) return { number: day.date || '', meta: day.dayLabel || '', accessible: [day.dayLabel, day.date].filter(Boolean).join('，') };
+    const month = parseInt(match[1], 10) + '月';
+    const number = String(parseInt(match[2], 10));
+    return { number, meta: (day.dayLabel || '') + ' · ' + month, accessible: (day.dayLabel || '') + '，' + month + number + '日' };
+  }
+  const match = String(day.date || '').match(/^([A-Za-z]{3})\\s+(\\d{1,2})$/);
+  if(!match) return { number: day.date || '', meta: String(day.dayLabel || '').toUpperCase(), accessible: [day.dayLabel, day.date].filter(Boolean).join(', ') };
+  const number = String(parseInt(match[2], 10));
+  return { number, meta: String(day.dayLabel || '').toUpperCase() + ' · ' + match[1].toUpperCase(), accessible: (day.dayLabel || '') + ', ' + match[1] + ' ' + number };
+}
 function formatDay(day, idx, lang, todayIdx){
   return {
     index: idx,
@@ -129,6 +155,31 @@ function dedupeMapItems(items){
     seen.add(key);
     return true;
   });
+}
+function activeIndexAtOffset(offsets, marker){
+  let active = 0;
+  for(let i = 0; i < offsets.length; i++){
+    if(offsets[i] <= marker) active = i;
+    else break;
+  }
+  return active;
+}
+function sectionIndexAtScroll(offsets, scrollTop, contextualIndex){
+  let active = 0;
+  for(let i = 1; i < offsets.length; i++){
+    const chrome = i === contextualIndex || i === contextualIndex + 1 ? 77 : 45;
+    if(scrollTop + chrome < offsets[i]) break;
+    active = i;
+  }
+  return active;
+}
+function findStopById(days, stopId){
+  for(let i = 0; i < days.length; i++){
+    for(let j = 0; j < days[i].items.length; j++){
+      if(days[i].items[j].id === stopId) return days[i].items[j];
+    }
+  }
+  return null;
 }
 function computeTodayIndex(days, year){
   const now = new Date();

@@ -20,18 +20,20 @@ function sharedExports(names) {
   return context.exportsForTest;
 }
 
-test('city view has no accommodation CTA while the dedicated Stay tab remains', () => {
+test('city overview has no accommodation CTA while the dedicated Hotel section remains', () => {
   assert.doesNotMatch(appSource, /gr-cta/);
-  assert.match(appSource, /data-tab="hotel"/);
+  assert.match(appSource, /data-section="hotel"/);
   assert.match(appSource, /t\('tabStay',state\.lang\)/);
 });
 
 test('bottom navigation and dialog close text are driven by exact translations', () => {
-  assert.deepEqual(I18N.tabCity, { en: '01 CITY', zh: '01 城市' });
+  assert.deepEqual(I18N.tabCity, { en: '01 OVERVIEW', zh: '01 概览' });
   assert.deepEqual(I18N.tabDay, { en: '02 DAYS', zh: '02 行程' });
   assert.deepEqual(I18N.tabMap, { en: '03 MAP', zh: '03 地图' });
-  assert.deepEqual(I18N.tabStay, { en: '04 STAY', zh: '04 住宿' });
+  assert.deepEqual(I18N.tabStay, { en: '04 HOTEL', zh: '04 酒店' });
   assert.deepEqual(I18N.sectionsNav, { en: 'Sections', zh: '页面导航' });
+  assert.deepEqual(I18N.citiesNav, { en: 'Cities', zh: '城市' });
+  assert.deepEqual(I18N.daysNav, { en: 'Days in this city', zh: '本城市行程日期' });
   assert.deepEqual(I18N.close, { en: 'CLOSE', zh: '关闭' });
   assert.match(appSource, /aria-label="'\+esc\(t\('sectionsNav',state\.lang\)\)/);
   assert.match(appSource, /t\('tabCity',state\.lang\)/);
@@ -39,6 +41,132 @@ test('bottom navigation and dialog close text are driven by exact translations',
   assert.match(appSource, /t\('tabMap',state\.lang\)/);
   assert.match(appSource, /t\('tabStay',state\.lang\)/);
   assert.match(appSource, /data-close[^>]*>\'\+esc\(t\('close',state\.lang\)\)/);
+});
+
+test('A1 renders one continuous city document with four ordered sections and stacked days', () => {
+  assert.match(appSource, /function viewCityDocument\(city\)/);
+  assert.match(appSource, /data-section-view="overview"[\s\S]*data-section-view="days"[\s\S]*data-section-view="map"[\s\S]*data-section-view="hotel"/);
+  assert.match(appSource, /function viewDays\(city\)[\s\S]*city\.days\.map\(function\(day\)/);
+  assert.match(appSource, /data-day-view="'\+day\.index\+'"/);
+  assert.doesNotMatch(appSource, /state\.tab|data-tab=/);
+});
+
+test('A1 compact rails use the approved 34, 44, and 32 pixel geometry', () => {
+  assert.match(appSource, /\.gr-tripbar\{[^}]*min-height:calc\(34px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(appSource, /\.gr-cityrail\{[^}]*position:sticky[^}]*top:0[^}]*height:44px/);
+  assert.match(appSource, /\.gr-dayrail\{[^}]*position:absolute[^}]*top:44px[^}]*height:32px/);
+  assert.match(appSource, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\) 44px/);
+  assert.match(appSource, /scroll-margin-top:44px/);
+  assert.match(appSource, /scroll-margin-top:76px/);
+  assert.match(appSource, /\.gr-tab\{[^}]*min-height:44px/);
+});
+
+test('compact trip and day labels remain bilingual and fit the slim rails', () => {
+  const { compactTripDates, compactDayLabel } = sharedExports(['compactTripDates', 'compactDayLabel']);
+  assert.equal(compactTripDates('Jul 26 – Aug 6, 2026', 'en'), '26 Jul — 6 Aug');
+  assert.equal(compactTripDates('2026 年 7 月 26 日 – 8 月 6 日', 'zh'), '7月26日—8月6日');
+  assert.equal(compactDayLabel({ dayLabel: 'Sun', date: 'Jul 26' }, 'en'), 'SUN 26');
+  assert.equal(compactDayLabel({ dayLabel: '周日', date: '7月26日' }, 'zh'), '周日 26');
+});
+
+test('editorial day heading parts localize the date lockup', () => {
+  const context = { TRIP, I18N, STOP_IMAGES, GEO };
+  context.globalThis = context;
+  vm.runInNewContext(`${SHARED_JS}\nglobalThis.dayHeadingPartsForTest = typeof dayHeadingParts === 'function' ? dayHeadingParts : null;`, context);
+  assert.equal(typeof context.dayHeadingPartsForTest, 'function');
+  assert.deepEqual(
+    { ...context.dayHeadingPartsForTest({ dayLabel: 'Sun', date: 'Jul 26' }, 'en') },
+    { number: '26', meta: 'SUN · JUL', accessible: 'Sun, Jul 26' },
+  );
+  assert.deepEqual(
+    { ...context.dayHeadingPartsForTest({ dayLabel: '周日', date: '7月26日' }, 'zh') },
+    { number: '26', meta: '周日 · 7月', accessible: '周日，7月26日' },
+  );
+});
+
+test('scrollspy selection is deterministic at section and day boundaries', () => {
+  const { activeIndexAtOffset } = sharedExports(['activeIndexAtOffset']);
+  const offsets = [78, 720, 2800, 3600];
+  assert.equal(activeIndexAtOffset(offsets, 0), 0);
+  assert.equal(activeIndexAtOffset(offsets, 719), 0);
+  assert.equal(activeIndexAtOffset(offsets, 720), 1);
+  assert.equal(activeIndexAtOffset(offsets, 3599), 2);
+  assert.equal(activeIndexAtOffset(offsets, 9999), 3);
+});
+
+test('section scrollspy accounts for contextual day chrome at both Days boundaries', () => {
+  const { sectionIndexAtScroll } = sharedExports(['sectionIndexAtScroll']);
+  const offsets = [78, 702, 4971, 6288];
+  assert.equal(sectionIndexAtScroll(offsets, 624, 1), 0);
+  assert.equal(sectionIndexAtScroll(offsets, 625, 1), 1);
+  assert.equal(sectionIndexAtScroll(offsets, 4893, 1), 1);
+  assert.equal(sectionIndexAtScroll(offsets, 4894, 1), 2);
+  assert.equal(sectionIndexAtScroll(offsets, 6242, 1), 2);
+  assert.equal(sectionIndexAtScroll(offsets, 6243, 1), 3);
+});
+
+test('stop lookup searches every stacked day rather than only the active day', () => {
+  const { loadTrip, findStopById } = sharedExports(['loadTrip', 'findStopById']);
+  const city = loadTrip('en').cities[0];
+  const lastStop = city.days.at(-1).items.at(-1);
+  assert.equal(findStopById(city.days, lastStop.id).id, lastStop.id);
+  assert.equal(findStopById(city.days, 'missing-stop'), null);
+});
+
+test('Guangzhou overview removes only Char Siu from its food list', () => {
+  const guangzhou = TRIP.cities.find((city) => city.id === 'gz');
+  assert.equal(guangzhou.mustEats.length, 6);
+  assert.equal(guangzhou.mustEats.some((food) => food.name.en === 'Char Siu' || food.name.zh === '叉烧'), false);
+});
+
+test('A1 navigation scrolls within the city document without rerendering on scroll', () => {
+  assert.match(appSource, /function updateScrollState\(\)/);
+  assert.match(appSource, /requestAnimationFrame\(function\(\)[\s\S]*updateScrollState\(\)/);
+  assert.match(appSource, /function scrollToSection\(section/);
+  assert.match(appSource, /function scrollToDay\(dayIdx/);
+  assert.match(appSource, /prefers-reduced-motion: reduce/);
+  assert.match(appSource, /data-section="overview"/);
+  assert.match(appSource, /data-day=/);
+});
+
+test('day rail is frame-level contextual chrome controlled by the active section', () => {
+  assert.match(appSource, /function viewDayRail\(city\)/);
+  assert.match(appSource, /root\.classList\.toggle\('gr-days-active',daysActive\)/);
+  assert.match(appSource, /dayRail\.setAttribute\('aria-hidden',daysActive\?'false':'true'\)/);
+  assert.match(appSource, /root\.innerHTML = body \+ viewDayRail\(city\) \+ tabs \+ overlay\(stop\)/);
+  assert.match(appSource, /\.gr-dayrail\{[^}]*position:absolute[^}]*top:44px[^}]*visibility:hidden[^}]*pointer-events:none/);
+  assert.match(appSource, /\.gr-days-active \.gr-dayrail\{[^}]*visibility:visible[^}]*pointer-events:auto/);
+  assert.doesNotMatch(appSource, /function viewDays\(city\)\{[\s\S]*?return rail \+ days;/);
+});
+
+test('each day uses one editorial heading before its hero without duplicate kickers', () => {
+  assert.match(appSource, /function viewDay\(city, day\)[\s\S]*dayHeadingParts\(day,state\.lang\)/);
+  assert.match(appSource, /gr-day-heading[\s\S]*gr-day-number[\s\S]*gr-day-meta[\s\S]*gr-day-heading-title[\s\S]*gr-dayhero/);
+  assert.doesNotMatch(appSource, /gr-day-kicker|gr-day-index|gr-daytitle/);
+});
+
+test('navigation uses a city-accent underline and a high-contrast language utility', () => {
+  assert.match(appSource, /\.gr-tab\.on\{[^}]*background:var\(--paper\)[^}]*color:var\(--ink\)[^}]*font-weight:700[^}]*box-shadow:inset 0 -3px 0 var\(--accent\)/);
+  assert.doesNotMatch(appSource, /\.gr-tab\.on\{[^}]*background:var\(--ink\)/);
+  assert.match(appSource, /\.gr-lang\{[^}]*background:var\(--ink\)[^}]*color:var\(--near2\)[^}]*font:700/);
+  assert.match(appSource, /state\.lang==='en'\?'中文':'EN'/);
+});
+
+test('city and language switches preserve the scroll-derived itinerary context', () => {
+  assert.match(appSource, /var section = state\.activeSection;[\s\S]*state\.cityIdx = \+el\.dataset\.city; state\.activeDay = 0;[\s\S]*render\(\{section:section\}\)/);
+  assert.match(appSource, /var context = captureScrollContext\(\);[\s\S]*state\.lang = state\.lang==='en'\?'zh':'en';[\s\S]*render\(\{context:context\}\)/);
+  assert.match(appSource, /options\.section==='days'[\s\S]*querySelector\('\[data-day-view="0"\]'\)/);
+});
+
+test('Today badge is integrated into the editorial day metadata', () => {
+  assert.match(appSource, /gr-day-meta-row[\s\S]*day\.isToday \? '<span class="gr-today">[\s\S]*gr-day-heading-title/);
+  assert.doesNotMatch(appSource, /\.gr-today \+ \.gr-dayhero/);
+});
+
+test('nested day anchors are measured in scroll-container coordinates', () => {
+  assert.match(appSource, /function elementScrollOffset\(element,scroller\)\{[\s\S]*getBoundingClientRect\(\)\.top[\s\S]*scroller\.scrollTop/);
+  assert.match(appSource, /days\.map\(function\(day\)\{ return elementScrollOffset\(day,scroller\); \}\)/);
+  assert.match(appSource, /top:Math\.max\(0,elementScrollOffset\(day,scroller\)-76\)/);
 });
 
 test('stop dialog uses a fixed-height sheet with a fixed close row and scrolling body', () => {
@@ -129,11 +257,11 @@ test('city map directory deduplicates destinations in first-occurrence order', (
   }
 });
 
-test('map UI has no scope controls and the five-day selector has a narrow-screen treatment', () => {
+test('map UI has no scope controls and the five-day rail remains single-line on narrow screens', () => {
   assert.doesNotMatch(appSource, /mapScope|data-mapscope|\.gr-seg/);
   assert.match(appSource, /function viewMap\(city\)/);
   assert.match(appSource, /city\.days\.reduce\(function\(items, day\)/);
-  assert.match(appSource, /@media \(max-width:360px\)\{[\s\S]*?\.gr-day\{[^}]*min-width:0/);
-  assert.match(appSource, /@media \(max-width:360px\)\{[\s\S]*?\.gr-day-w\{[^}]*white-space:nowrap/);
-  assert.match(appSource, /@media \(max-width:360px\)\{[\s\S]*?\.gr-day-d\{[^}]*white-space:nowrap/);
+  assert.match(appSource, /\.gr-dayrail\{[^}]*grid-template-columns/);
+  assert.match(appSource, /\.gr-day\{[^}]*min-width:0[^}]*white-space:nowrap/);
+  assert.match(appSource, /@media \(max-width:360px\)\{[\s\S]*?\.gr-day\{[^}]*font-size:9px/);
 });
