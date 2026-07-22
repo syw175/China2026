@@ -1,5 +1,4 @@
-// "Grid" redesign — mobile-first 4-tab app shell (City / Days / Map / Stay) + stop overlay.
-// Re-implements the design-bundle prototype (Itinerary Grid.dc.html) in plain HTML/CSS/JS.
+// A1 redesign — one continuous city document with compact stacked navigation rails.
 // Consumes TRIP / I18N from source/data.js as-is; helpers come from SHARED_JS (source/shared.js).
 function buildA(DATA_JSON, SHARED_JS){
 const CSS = `
@@ -39,7 +38,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 /* visible keyboard focus (ink stays legible on paper and on accent fills) */
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 /* press feedback (tap-highlight is disabled, so restore a "tap registered" cue) */
-.gr-city,.gr-day,.gr-tab,.gr-stop,.gr-maprow,.gr-nearrow,.gr-addr,.gr-doc,.gr-tel,.gr-lang,.gr-close,.gr-hotel-cta{transition:background .12s ease,opacity .12s ease}
+.gr-city,.gr-day,.gr-tab,.gr-stop,.gr-maprow,.gr-nearrow,.gr-addr,.gr-doc,.gr-tel,.gr-lang,.gr-close{transition:background .12s ease,opacity .12s ease,color .12s ease}
 .gr-city:active,.gr-day:active,.gr-tab:active,.gr-stop:active,.gr-maprow:active,.gr-nearrow:active,.gr-addr:active,.gr-doc:active,.gr-tel:active,.gr-lang:active,.gr-close:active{opacity:.6}
 /* hover feedback, real-hover devices only (avoids sticky hover on touch) */
 @media (hover:hover){
@@ -50,9 +49,6 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 }
 /* hero photos fade in as they decode */
 .gr-photo-img{opacity:0;transition:opacity .35s ease}
-/* subtle content entrance on each view swap */
-@media (prefers-reduced-motion:no-preference){ .gr-scroll{animation:grIn .18s ease} }
-@keyframes grIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} .gr-photo-img{opacity:1} }
 
 .gr-frame{width:100vw;height:100vh;height:100dvh;background:var(--paper);display:flex;flex-direction:column;
@@ -62,20 +58,29 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
     box-shadow:0 30px 80px -30px oklch(20% .01 80 / .55);border:1px solid var(--ink)}
 }
 
-/* header + city switcher */
-.gr-header{flex:none;padding:18px 20px 0;padding-top:calc(18px + env(safe-area-inset-top, 0px));border-bottom:2px solid var(--ink)}
-.gr-header-top{display:flex;align-items:flex-start;justify-content:space-between}
-.gr-title{font:700 22px/1.05 var(--grotesk);letter-spacing:-.01em}
-.gr-lang{font:600 10px/1 var(--mono);letter-spacing:.05em;background:var(--ink);color:var(--near2);
-  border:none;padding:8px 10px}
-.gr-dates{font:500 11px/1.4 var(--mono);color:var(--muted);margin:6px 0 14px;letter-spacing:.02em}
-.gr-cities{display:grid;grid-template-columns:repeat(3,1fr)}
-.gr-city{font:600 12px/1 var(--grotesk);letter-spacing:.01em;padding:10px 4px;border:none;
-  border-top:3px solid transparent;background:transparent;color:var(--ink);text-align:center}
-.gr-city.on{border-top-color:var(--accent);background:var(--accent);color:var(--near)}
+/* A1 header: the trip line scrolls away; the city line stays in reach. */
+.gr-tripbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  min-height:calc(34px + env(safe-area-inset-top, 0px));padding:env(safe-area-inset-top, 0px) 10px 0;
+  border-bottom:1px solid var(--hair2);background:var(--paper)}
+.gr-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:600 13px/1 var(--grotesk);letter-spacing:-.01em}
+.gr-dates{flex:none;font:500 10px/1 var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.01em}
+.gr-cityrail{position:sticky;top:0;height:44px;z-index:8;display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr)) 44px;align-items:stretch;
+  border-bottom:1px solid var(--hair2);background:color-mix(in oklch,var(--paper) 94%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.gr-city{min-width:0;padding:0 3px;border:0;border-bottom:3px solid transparent;background:transparent;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;
+  font:600 12px/1 var(--grotesk);letter-spacing:-.01em}
+.gr-city.on{border-bottom-color:var(--accent);color:var(--ink)}
+.gr-lang{width:44px;height:44px;padding:0;border:0;border-left:1px solid var(--hair2);
+  background:transparent;color:var(--muted);font:600 10px/1 var(--mono);letter-spacing:.04em}
 
-/* scroll body */
-.gr-scroll{flex:1 1 auto;overflow-y:auto;padding:20px}
+/* One continuous current-city document. */
+.gr-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;position:relative;padding:0}
+.gr-section{position:relative;padding:20px;scroll-margin-top:44px}
+.gr-section--days{padding:0 20px 34px;border-top:2px solid var(--ink)}
+.gr-section--map,.gr-section--hotel{min-height:calc(100% - 44px);padding-top:28px;border-top:2px solid var(--ink)}
 
 /* photo frames */
 .gr-photo{position:relative;width:100%;background:var(--stripe);border:2px solid var(--ink)}
@@ -106,21 +111,24 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-eat-note{font:400 11px/1.4 var(--sans);color:var(--muted2);margin-top:3px}
 .gr-taste{margin-top:28px}
 
-/* days tab */
-.gr-days{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid var(--ink)}
-.gr-day{text-align:left;padding:9px 8px;border:none;background:transparent;color:var(--ink)}
-.gr-day:not(:last-child){border-right:1px solid var(--hair2)}
-.gr-day.on{background:var(--accent);color:oklch(98% .01 70)}
-.gr-day-w{display:block;font:600 9px/1 var(--mono);letter-spacing:.04em;opacity:.75}
-.gr-day-d{display:block;font:700 13px/1.3 var(--grotesk);margin-top:4px}
-@media (max-width:360px){
-  .gr-day{min-width:0;padding:8px 3px}
-  .gr-day-w{font-size:8px;white-space:nowrap}
-  .gr-day-d{font-size:12px;white-space:nowrap}
-}
-.gr-today{margin-top:10px;display:inline-block;font:600 10px/1 var(--mono);letter-spacing:.05em;
+/* contextual day rail + vertically stacked days */
+.gr-dayrail{position:sticky;top:44px;height:32px;z-index:7;display:grid;grid-template-columns:repeat(4,1fr);
+  margin:0 -20px;background:color-mix(in oklch,var(--paper) 88%,var(--hair));
+  border-bottom:1px solid var(--hair2);box-shadow:0 5px 12px -12px var(--ink)}
+.gr-day{min-width:0;height:32px;padding:0 1px;border:0;border-bottom:2px solid transparent;
+  background:transparent;color:var(--muted);white-space:nowrap;text-align:center;
+  font:600 10px/1 var(--mono);letter-spacing:-.02em}
+.gr-day.on{border-bottom-color:var(--accent);color:var(--ink)}
+@media (max-width:360px){.gr-day{font-size:9px;letter-spacing:-.04em}}
+.gr-dayblock{padding-top:22px;scroll-margin-top:76px}
+.gr-dayblock + .gr-dayblock{margin-top:34px;padding-top:32px;border-top:1px solid var(--hair2)}
+.gr-day-kicker{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+  color:var(--muted);font:600 10px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase}
+.gr-day-index{color:var(--accent)}
+.gr-today{display:inline-block;font:600 9px/1 var(--mono);letter-spacing:.05em;
   background:var(--accent);color:oklch(98% .01 70);padding:5px 8px}
-.gr-dayhero{margin-top:16px}
+.gr-dayhero{margin-top:0}
+.gr-today + .gr-dayhero{margin-top:10px}
 .gr-daytitle{font:700 24px/1.2 var(--grotesk);margin-top:14px;letter-spacing:-.01em}
 .gr-stops{margin-top:20px;display:flex;flex-direction:column}
 .gr-stop{display:grid;grid-template-columns:50px 1fr;text-align:left;background:none;border:none;
@@ -171,8 +179,8 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 /* bottom tab bar */
 .gr-tabs{flex:none;display:grid;grid-template-columns:repeat(4,1fr);
   border-top:2px solid var(--ink);background:var(--paper);padding-bottom:env(safe-area-inset-bottom, 0px)}
-.gr-tab{padding:12px 0 14px;background:transparent;border:none;
-  font:600 11px/1 var(--mono);letter-spacing:.03em;color:var(--ink)}
+.gr-tab{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 2px;background:transparent;border:none;
+  font:600 11px/1 var(--mono);letter-spacing:.03em;color:var(--ink);white-space:nowrap}
 .gr-tab.on{background:var(--ink);color:oklch(98% .01 70)}
 
 /* stop overlay */
@@ -215,9 +223,10 @@ function loadLanguage(){
 function saveLanguage(lang){
   try{ window.localStorage.setItem(LANGUAGE_STORAGE_KEY,lang); }catch(e){}
 }
-var state = { lang:loadLanguage(), cityIdx:0, tab:'city', dayIdx:0, openStop:null };
+var state = { lang:loadLanguage(), cityIdx:0, activeSection:'overview', activeDay:0, openStop:null };
 var root;
 var lastTrigger = null; // stop-row id that opened the dialog, for focus restore
+var scrollFrame = 0;
 
 function up(s){ return String(s==null?'':s).toUpperCase(); }
 function sub(o){ return o.sub ? '<div class="gr-sub">'+esc(o.sub)+'</div>' : ''; }
@@ -268,7 +277,7 @@ function nearRow(n, withType){
     + '</a>';
 }
 
-function viewCity(city){
+function viewOverview(city){
   var h = '<div>';
   h += photo('gr-photo--1610', city.name.main + '_CITY.JPG', cityImg(city.id), city.name.main, true);
   h += '<h2 class="gr-cityname">'+esc(city.name.main)+'</h2>' + sub(city.name);
@@ -287,11 +296,8 @@ function viewCity(city){
 
 function viewDay(city, day){
   var h = '<div>';
-  h += '<div class="gr-days" style="grid-template-columns:repeat('+city.days.length+',1fr)">' + city.days.map(function(d){
-      return '<button class="gr-day'+(d.index===state.dayIdx?' on':'')+'" data-day="'+d.index+'"'+(d.index===state.dayIdx?' aria-current="true"':'')+'>'
-        + '<span class="gr-day-w">'+esc(d.dayLabel)+'</span>'
-        + '<span class="gr-day-d">'+esc(d.date)+'</span></button>';
-    }).join('') + '</div>';
+  h += '<div class="gr-day-kicker"><span class="gr-day-index">'+(state.lang==='zh'?'第':'DAY ')+String(day.dayNum).padStart(2,'0')+(state.lang==='zh'?'天':'')+'</span>'
+    + '<span>'+esc(day.dayLabel)+' · '+esc(day.date)+'</span></div>';
   if(day.isToday) h += '<div class="gr-today">'+esc(t('today',state.lang))+'</div>';
   h += '<div class="gr-dayhero">' + photo('gr-photo--169', 'DAY_'+day.dayNum+'.JPG', dayImg(city.id, day.index), day.title.main) + '</div>';
   h += '<h2 class="gr-daytitle">'+esc(day.title.main)+'</h2>' + sub(day.title);
@@ -307,6 +313,19 @@ function viewDay(city, day){
         + '</div></button>';
     }).join('') + '</div>';
   return h + '</div>';
+}
+
+function viewDays(city){
+  var rail = '<nav class="gr-dayrail" aria-label="'+esc(t('daysNav',state.lang))+'" style="grid-template-columns:repeat('+city.days.length+',1fr)">'
+    + city.days.map(function(day){
+      var fullLabel = day.dayLabel + ', ' + day.date;
+      return '<button class="gr-day'+(day.index===state.activeDay?' on':'')+'" data-day="'+day.index+'" aria-label="'+esc(fullLabel)+'"'
+        +(day.index===state.activeDay?' aria-current="date"':'')+'>'+esc(compactDayLabel(day,state.lang))+'</button>';
+    }).join('') + '</nav>';
+  var days = city.days.map(function(day){
+    return '<article class="gr-dayblock" data-day-view="'+day.index+'" id="day-'+city.id+'-'+day.index+'">'+viewDay(city,day)+'</article>';
+  }).join('');
+  return rail + days;
 }
 
 function viewMap(city){
@@ -347,6 +366,15 @@ function viewHotel(city){
   return h + '</div>';
 }
 
+function viewCityDocument(city){
+  return '<main class="gr-city-document">'
+    + '<section class="gr-section gr-section--overview" data-section-view="overview" id="overview-'+city.id+'">'+viewOverview(city)+'</section>'
+    + '<section class="gr-section gr-section--days" data-section-view="days" id="days-'+city.id+'">'+viewDays(city)+'</section>'
+    + '<section class="gr-section gr-section--map" data-section-view="map" id="map-'+city.id+'">'+viewMap(city)+'</section>'
+    + '<section class="gr-section gr-section--hotel" data-section-view="hotel" id="hotel-'+city.id+'">'+viewHotel(city)+'</section>'
+    + '</main>';
+}
+
 function overlay(stop){
   if(!stop) return '';
   var h = '<div class="gr-overlay" data-backdrop><div class="gr-sheet" role="dialog" aria-modal="true" aria-labelledby="gr-stop-title">';
@@ -366,44 +394,148 @@ function overlay(stop){
   return h + '</div></div></div>';
 }
 
-function render(){
+function currentScroller(){ return root ? root.querySelector('.gr-scroll') : null; }
+function currentScrollTop(){ var scroller = currentScroller(); return scroller ? scroller.scrollTop : 0; }
+function elementScrollOffset(element,scroller){
+  return element.getBoundingClientRect().top-scroller.getBoundingClientRect().top+scroller.scrollTop;
+}
+function motionBehavior(){
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+}
+function captureScrollContext(){
+  var scroller = currentScroller();
+  if(!scroller) return null;
+  updateScrollState();
+  var selector = state.activeSection==='days'
+    ? '[data-day-view="'+state.activeDay+'"]'
+    : '[data-section-view="'+state.activeSection+'"]';
+  var anchor = scroller.querySelector(selector);
+  return anchor ? { section:state.activeSection, day:state.activeDay, delta:scroller.scrollTop-elementScrollOffset(anchor,scroller) } : null;
+}
+function updateNavigation(){
+  var sectionButtons = root.querySelectorAll('[data-section]');
+  for(var i=0;i<sectionButtons.length;i++){
+    var sectionOn = sectionButtons[i].dataset.section===state.activeSection;
+    sectionButtons[i].classList.toggle('on',sectionOn);
+    if(sectionOn) sectionButtons[i].setAttribute('aria-current','location');
+    else sectionButtons[i].removeAttribute('aria-current');
+  }
+  var dayButtons = root.querySelectorAll('[data-day]');
+  for(var j=0;j<dayButtons.length;j++){
+    var dayOn = +dayButtons[j].dataset.day===state.activeDay;
+    dayButtons[j].classList.toggle('on',dayOn);
+    if(dayOn) dayButtons[j].setAttribute('aria-current','date');
+    else dayButtons[j].removeAttribute('aria-current');
+  }
+}
+function updateScrollState(){
+  var scroller = currentScroller();
+  if(!scroller) return;
+  var sections = Array.prototype.slice.call(scroller.querySelectorAll('[data-section-view]'));
+  if(!sections.length) return;
+  var sectionOffsets = sections.map(function(section){ return elementScrollOffset(section,scroller); });
+  var sectionIdx = activeIndexAtOffset(sectionOffsets,scroller.scrollTop+45);
+  if(scroller.scrollTop+scroller.clientHeight>=scroller.scrollHeight-2) sectionIdx=sections.length-1;
+  state.activeSection = sections[sectionIdx].dataset.sectionView;
+  if(state.activeSection==='days'){
+    var days = Array.prototype.slice.call(scroller.querySelectorAll('[data-day-view]'));
+    if(days.length){
+      state.activeDay = activeIndexAtOffset(days.map(function(day){ return elementScrollOffset(day,scroller); }),scroller.scrollTop+77);
+    }
+  }
+  updateNavigation();
+}
+function scheduleScrollState(){
+  if(scrollFrame) return;
+  scrollFrame=requestAnimationFrame(function(){
+    scrollFrame=0;
+    updateScrollState();
+  });
+}
+function scrollToDay(dayIdx,behavior){
+  var scroller = currentScroller();
+  var day = scroller && scroller.querySelector('[data-day-view="'+dayIdx+'"]');
+  if(!scroller || !day) return;
+  state.activeSection='days';
+  state.activeDay=dayIdx;
+  updateNavigation();
+  scroller.scrollTo({top:Math.max(0,elementScrollOffset(day,scroller)-76),behavior:behavior||motionBehavior()});
+}
+function scrollToSection(section,behavior){
+  var scroller = currentScroller();
+  if(!scroller) return;
+  state.activeSection=section;
+  if(section==='overview'){
+    updateNavigation();
+    scroller.scrollTo({top:0,behavior:behavior||motionBehavior()});
+    return;
+  }
+  if(section==='days'){
+    scrollToDay(0,behavior);
+    return;
+  }
+  var target = scroller.querySelector('[data-section-view="'+section+'"]');
+  if(!target) return;
+  updateNavigation();
+  scroller.scrollTo({top:Math.max(0,elementScrollOffset(target,scroller)-44),behavior:behavior||motionBehavior()});
+}
+function restoreScroll(options){
+  var scroller = currentScroller();
+  if(!scroller) return;
+  if(options && typeof options.scrollTop==='number'){
+    scroller.scrollTop=options.scrollTop;
+  }else if(options && options.context){
+    var context = options.context;
+    var selector = context.section==='days'
+      ? '[data-day-view="'+context.day+'"]'
+      : '[data-section-view="'+context.section+'"]';
+    var anchor = scroller.querySelector(selector);
+    if(anchor) scroller.scrollTop=Math.max(0,elementScrollOffset(anchor,scroller)+context.delta);
+  }else if(options && options.section){
+    if(options.section==='overview') scroller.scrollTop=0;
+    else if(options.section==='days'){
+      var firstDay = scroller.querySelector('[data-day-view="0"]');
+      if(firstDay) scroller.scrollTop=Math.max(0,elementScrollOffset(firstDay,scroller)-76);
+    }else{
+      var section = scroller.querySelector('[data-section-view="'+options.section+'"]');
+      if(section) scroller.scrollTop=Math.max(0,elementScrollOffset(section,scroller)-44);
+    }
+  }
+}
+
+function render(options){
   var data = loadTrip(state.lang);
   if(state.cityIdx >= data.cities.length) state.cityIdx = 0;
   var city = data.cities[state.cityIdx];
-  if(state.dayIdx >= city.days.length) state.dayIdx = 0;
-  var day = city.days[state.dayIdx];
+  if(state.activeDay >= city.days.length) state.activeDay = 0;
   root.style.setProperty('--accent', ACCENTS[state.cityIdx]);
 
   var stop = null;
   if(state.openStop){
-    for(var i=0;i<day.items.length && !stop;i++){ if(day.items[i].id===state.openStop) stop = day.items[i]; }
+    stop = findStopById(city.days,state.openStop);
     if(!stop) state.openStop = null;
   }
 
   var langLabel = state.lang==='en' ? 'Switch to Chinese' : '切换到英文';
-  var head = '<div class="gr-header"><div class="gr-header-top">'
-    + '<h1 class="gr-title">'+esc(data.tripTitle)+'</h1>'
-    + '<button class="gr-lang" data-lang-toggle aria-label="'+esc(langLabel)+'">'+(state.lang==='en'?'中文':'EN')+'</button></div>'
-    + '<div class="gr-dates">'+esc(data.dates)+'</div>'
-    + '<nav class="gr-cities" aria-label="Cities">' + data.cities.map(function(c,i){
+  var head = '<header class="gr-tripbar"><h1 class="gr-title">'+esc(data.tripTitle)+'</h1>'
+    + '<div class="gr-dates">'+esc(compactTripDates(data.dates,state.lang))+'</div></header>'
+    + '<nav class="gr-cityrail" aria-label="'+esc(t('citiesNav',state.lang))+'">' + data.cities.map(function(c,i){
         return '<button class="gr-city'+(i===state.cityIdx?' on':'')+'" data-city="'+i+'"'+(i===state.cityIdx?' aria-current="true"':'')+'>'+esc(c.name.main)+'</button>';
-      }).join('') + '</nav></div>';
+      }).join('') + '<button class="gr-lang" data-lang-toggle aria-label="'+esc(langLabel)+'">'+(state.lang==='en'?'中':'EN')+'</button></nav>';
+  var body = '<div class="gr-scroll">'+head+viewCityDocument(city)+'</div>';
 
-  var panel = state.tab==='city' ? viewCity(city)
-            : state.tab==='day' ? viewDay(city, day)
-            : state.tab==='map' ? viewMap(city)
-            : viewHotel(city);
-  var body = '<div class="gr-scroll">'+panel+'</div>';
-
-  var ac = function(name){ return state.tab===name ? ' aria-current="page"' : ''; };
   var tabs = '<nav class="gr-tabs" aria-label="'+esc(t('sectionsNav',state.lang))+'">'
-    + '<button class="gr-tab'+(state.tab==='city'?' on':'')+'" data-tab="city"'+ac('city')+'>'+esc(t('tabCity',state.lang))+'</button>'
-    + '<button class="gr-tab'+(state.tab==='day'?' on':'')+'" data-tab="day"'+ac('day')+'>'+esc(t('tabDay',state.lang))+'</button>'
-    + '<button class="gr-tab'+(state.tab==='map'?' on':'')+'" data-tab="map"'+ac('map')+'>'+esc(t('tabMap',state.lang))+'</button>'
-    + '<button class="gr-tab'+(state.tab==='hotel'?' on':'')+'" data-tab="hotel"'+ac('hotel')+'>'+esc(t('tabStay',state.lang))+'</button>'
+    + '<button class="gr-tab" data-section="overview">'+esc(t('tabCity',state.lang))+'</button>'
+    + '<button class="gr-tab" data-section="days">'+esc(t('tabDay',state.lang))+'</button>'
+    + '<button class="gr-tab" data-section="map">'+esc(t('tabMap',state.lang))+'</button>'
+    + '<button class="gr-tab" data-section="hotel">'+esc(t('tabStay',state.lang))+'</button>'
     + '</nav>';
 
-  root.innerHTML = head + body + tabs + overlay(stop);
+  root.innerHTML = body + tabs + overlay(stop);
+  var scroller = currentScroller();
+  if(scroller) scroller.addEventListener('scroll',scheduleScrollState,{passive:true});
+  restoreScroll(options||null);
+  updateScrollState();
   // reveal any already-cached hero images immediately (onload won't refire)
   var imgs = root.querySelectorAll('.gr-photo-img');
   for(var k=0;k<imgs.length;k++){ if(imgs[k].complete) imgs[k].style.opacity=1; }
@@ -414,13 +546,31 @@ function render(){
 
 document.addEventListener('click', function(e){
   var el;
-  if(e.target.closest('[data-lang-toggle]')){ state.lang = state.lang==='en'?'zh':'en'; saveLanguage(state.lang); document.documentElement.lang = state.lang; render(); return; }
-  if((el=e.target.closest('[data-city]'))){ state.cityIdx = +el.dataset.city; state.dayIdx = 0; state.openStop = null; render(); return; }
-  if((el=e.target.closest('[data-tab]'))){ state.tab = el.dataset.tab; state.openStop = null; render(); return; }
-  if((el=e.target.closest('[data-day]'))){ state.dayIdx = +el.dataset.day; state.openStop = null; render(); return; }
-  if((el=e.target.closest('[data-open]'))){ state.openStop = el.dataset.open; lastTrigger = el.dataset.open; render(); return; }
-  if(e.target.closest('[data-close]')){ state.openStop = null; render(); return; }
-  if(e.target.hasAttribute('data-backdrop')){ state.openStop = null; render(); return; }
+  if(e.target.closest('[data-lang-toggle]')){
+    var context = captureScrollContext();
+    state.lang = state.lang==='en'?'zh':'en'; saveLanguage(state.lang); document.documentElement.lang = state.lang;
+    render({context:context}); return;
+  }
+  if((el=e.target.closest('[data-city]'))){
+    if(+el.dataset.city===state.cityIdx) return;
+    var section = state.activeSection;
+    state.cityIdx = +el.dataset.city; state.activeDay = 0; state.openStop = null;
+    render({section:section}); return;
+  }
+  if((el=e.target.closest('[data-section]'))){ state.openStop = null; scrollToSection(el.dataset.section); return; }
+  if((el=e.target.closest('[data-day]'))){ state.openStop = null; scrollToDay(+el.dataset.day); return; }
+  if((el=e.target.closest('[data-open]'))){
+    var openScroll = currentScrollTop();
+    state.openStop = el.dataset.open; lastTrigger = el.dataset.open; render({scrollTop:openScroll}); return;
+  }
+  if(e.target.closest('[data-close]')){
+    var closeScroll = currentScrollTop();
+    state.openStop = null; render({scrollTop:closeScroll}); return;
+  }
+  if(e.target.hasAttribute('data-backdrop')){
+    var backdropScroll = currentScrollTop();
+    state.openStop = null; render({scrollTop:backdropScroll}); return;
+  }
 });
 // Amap address links (modern, cross-browser, graceful degradation):
 //  - iPhone/iPod ONLY: tap opens the native app in place via iosamap://viewMap
@@ -452,7 +602,10 @@ document.addEventListener('click', function(e){
 });
 document.addEventListener('keydown', function(e){
   if(!state.openStop) return;
-  if(e.key==='Escape'){ state.openStop = null; render(); return; }
+  if(e.key==='Escape'){
+    var escapeScroll = currentScrollTop();
+    state.openStop = null; render({scrollTop:escapeScroll}); return;
+  }
   if(e.key==='Tab'){ // keep focus inside the dialog
     var sheet = root.querySelector('.gr-sheet'); if(!sheet) return;
     var f = sheet.querySelectorAll('button:not([disabled]), a[href]');
