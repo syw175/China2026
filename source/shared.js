@@ -95,16 +95,40 @@ function formatItem(it, lang){
     nearby: (it.nearby || []).map(n => formatNear(n, lang)),
   };
 }
+const WEEKDAY_ZH = { Sun:'周日', Mon:'周一', Tue:'周二', Wed:'周三', Thu:'周四', Fri:'周五', Sat:'周六' };
+function formatDayLabel(label, lang){
+  return lang === 'zh' ? (WEEKDAY_ZH[label] || label) : label;
+}
+function formatDayDate(date, lang){
+  if(lang !== 'zh') return date;
+  const match = /^(Jul|Aug)\\s+(\\d{1,2})$/.exec(date);
+  if(!match) return date;
+  return (match[1] === 'Jul' ? '7' : '8') + '月' + parseInt(match[2], 10) + '日';
+}
 function formatDay(day, idx, lang, todayIdx){
   return {
     index: idx,
     dayNum: idx + 1,
-    dayLabel: day.dayLabel,
-    date: day.date,
+    dayLabel: formatDayLabel(day.dayLabel, lang),
+    date: formatDayDate(day.date, lang),
     isToday: idx === todayIdx,
     title: bilingual(day.title, lang),
     items: day.items.map(it => formatItem(it, lang)),
   };
+}
+function mapDestinationKey(item){
+  if(item.mapUrl) return item.mapUrl;
+  if(item.geo) return item.geo.lat + ',' + item.geo.lon;
+  return item.searchKey || item.name.main || item.id;
+}
+function dedupeMapItems(items){
+  const seen = new Set();
+  return items.filter(item => {
+    const key = mapDestinationKey(item);
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 function computeTodayIndex(days, year){
   const now = new Date();
