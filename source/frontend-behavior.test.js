@@ -52,13 +52,26 @@ test('A1 renders one continuous city document with four ordered sections and sta
 });
 
 test('A1 compact rails use the approved 34, 44, and 32 pixel geometry', () => {
-  assert.match(appSource, /\.gr-tripbar\{[^}]*min-height:calc\(34px \+ env\(safe-area-inset-top, 0px\)\)/);
-  assert.match(appSource, /\.gr-cityrail\{[^}]*position:sticky[^}]*top:0[^}]*height:44px/);
-  assert.match(appSource, /\.gr-dayrail\{[^}]*position:absolute[^}]*top:44px[^}]*height:32px/);
-  assert.match(appSource, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\) 44px/);
-  assert.match(appSource, /scroll-margin-top:44px/);
-  assert.match(appSource, /scroll-margin-top:76px/);
+  assert.match(appSource, /\.gr-tripbar\{[^}]*min-height:calc\(var\(--trip-row-height\) \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(appSource, /\.gr-cityrail\{[^}]*position:sticky[^}]*top:0[^}]*height:var\(--city-rail-height\)/);
+  assert.match(appSource, /\.gr-dayrail\{[^}]*position:absolute[^}]*top:var\(--city-rail-height\)[^}]*height:var\(--day-rail-height\)/);
+  assert.match(appSource, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\) var\(--city-rail-height\)/);
+  assert.match(appSource, /scroll-margin-top:var\(--city-rail-height\)/);
+  assert.match(appSource, /scroll-margin-top:calc\(var\(--city-rail-height\) \+ var\(--day-rail-height\)\)/);
   assert.match(appSource, /\.gr-tab\{[^}]*min-height:44px/);
+});
+
+test('Overview fills unused scroll viewport using centralized opening chrome geometry', () => {
+  assert.match(appSource, /--trip-row-height:34px/);
+  assert.match(appSource, /--city-rail-height:44px/);
+  assert.match(appSource, /--day-rail-height:32px/);
+  assert.match(appSource, /\.gr-tripbar\{[^}]*min-height:calc\(var\(--trip-row-height\) \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(appSource, /\.gr-cityrail\{[^}]*height:var\(--city-rail-height\)/);
+  assert.match(appSource, /\.gr-dayrail\{[^}]*top:var\(--city-rail-height\)[^}]*height:var\(--day-rail-height\)/);
+  assert.match(appSource, /\.gr-scroll\{[^}]*container-type:size/);
+  assert.match(appSource, /\.gr-section--overview\{min-block-size:calc\(100cqb - var\(--trip-row-height\) - var\(--city-rail-height\) - env\(safe-area-inset-top, 0px\)\)\}/);
+  assert.doesNotMatch(appSource, /\.gr-section--overview\{[^}]*(?:100%|100d?vh|padding-bottom)/);
+  assert.doesNotMatch(appSource, /ResizeObserver/);
 });
 
 test('compact trip and day labels remain bilingual and fit the slim rails', () => {
@@ -134,7 +147,7 @@ test('day rail is frame-level contextual chrome controlled by the active section
   assert.match(appSource, /root\.classList\.toggle\('gr-days-active',daysActive\)/);
   assert.match(appSource, /dayRail\.setAttribute\('aria-hidden',daysActive\?'false':'true'\)/);
   assert.match(appSource, /root\.innerHTML = body \+ viewDayRail\(city\) \+ tabs \+ overlay\(stop\)/);
-  assert.match(appSource, /\.gr-dayrail\{[^}]*position:absolute[^}]*top:44px[^}]*visibility:hidden[^}]*pointer-events:none/);
+  assert.match(appSource, /\.gr-dayrail\{[^}]*position:absolute[^}]*top:var\(--city-rail-height\)[^}]*visibility:hidden[^}]*pointer-events:none/);
   assert.match(appSource, /\.gr-days-active \.gr-dayrail\{[^}]*visibility:visible[^}]*pointer-events:auto/);
   assert.doesNotMatch(appSource, /function viewDays\(city\)\{[\s\S]*?return rail \+ days;/);
 });

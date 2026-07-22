@@ -21,6 +21,9 @@ const CSS = `
   --body:oklch(30% .01 70);
   --body2:oklch(25% .01 70);
   --accent:oklch(58% .16 35);
+  --trip-row-height:34px;
+  --city-rail-height:44px;
+  --day-rail-height:32px;
   --stripe:repeating-linear-gradient(90deg, oklch(84% .04 40), oklch(84% .04 40) 3px, oklch(89% .03 40) 3px, oklch(89% .03 40) 6px);
   --grotesk:'Space Grotesk',system-ui,sans-serif;
   --sans:'IBM Plex Sans',system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
@@ -60,27 +63,28 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 
 /* A1 header: the trip line scrolls away; the city line stays in reach. */
 .gr-tripbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
-  min-height:calc(34px + env(safe-area-inset-top, 0px));padding:env(safe-area-inset-top, 0px) 10px 0;
+  min-height:calc(var(--trip-row-height) + env(safe-area-inset-top, 0px));padding:env(safe-area-inset-top, 0px) 10px 0;
   border-bottom:1px solid var(--hair2);background:var(--paper)}
 .gr-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font:600 13px/1 var(--grotesk);letter-spacing:-.01em}
 .gr-dates{flex:none;font:500 10px/1 var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.01em}
-.gr-cityrail{position:sticky;top:0;height:44px;z-index:8;display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr)) 44px;align-items:stretch;
+.gr-cityrail{position:sticky;top:0;height:var(--city-rail-height);z-index:8;display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr)) var(--city-rail-height);align-items:stretch;
   border-bottom:1px solid var(--hair2);background:color-mix(in oklch,var(--paper) 94%,transparent);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .gr-city{min-width:0;padding:0 3px;border:0;border-bottom:3px solid transparent;background:transparent;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;
   font:600 12px/1 var(--grotesk);letter-spacing:-.01em}
 .gr-city.on{border-bottom-color:var(--accent);color:var(--ink)}
-.gr-lang{width:44px;height:44px;padding:0;border:0;border-left:1px solid var(--hair2);
+.gr-lang{width:var(--city-rail-height);height:var(--city-rail-height);padding:0;border:0;border-left:1px solid var(--hair2);
   background:var(--ink);color:var(--near2);font:700 10px/1 var(--mono);letter-spacing:.04em}
 
 /* One continuous current-city document. */
-.gr-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;position:relative;padding:0}
-.gr-section{position:relative;padding:20px;scroll-margin-top:44px}
+.gr-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;position:relative;padding:0;container-type:size}
+.gr-section{position:relative;padding:20px;scroll-margin-top:var(--city-rail-height)}
+.gr-section--overview{min-block-size:calc(100cqb - var(--trip-row-height) - var(--city-rail-height) - env(safe-area-inset-top, 0px))}
 .gr-section--days{padding:0 20px 34px;border-top:2px solid var(--ink)}
-.gr-section--map,.gr-section--hotel{min-height:calc(100% - 44px);padding-top:28px;border-top:2px solid var(--ink)}
+.gr-section--map,.gr-section--hotel{min-height:calc(100% - var(--city-rail-height));padding-top:28px;border-top:2px solid var(--ink)}
 
 /* photo frames */
 .gr-photo{position:relative;width:100%;background:var(--stripe);border:2px solid var(--ink)}
@@ -112,17 +116,17 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-taste{margin-top:28px}
 
 /* contextual day rail + vertically stacked days */
-.gr-dayrail{position:absolute;top:44px;left:0;right:0;height:32px;z-index:9;display:grid;grid-template-columns:repeat(4,1fr);
+.gr-dayrail{position:absolute;top:var(--city-rail-height);left:0;right:0;height:var(--day-rail-height);z-index:9;display:grid;grid-template-columns:repeat(4,1fr);
   background:color-mix(in oklch,var(--paper) 88%,var(--hair));border-bottom:1px solid var(--hair2);
   box-shadow:0 5px 12px -12px var(--ink);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-4px);
   transition:opacity .14s ease,transform .14s ease,visibility 0s linear .14s}
 .gr-days-active .gr-dayrail{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s}
-.gr-day{min-width:0;height:32px;padding:0 1px;border:0;border-bottom:2px solid transparent;
+.gr-day{min-width:0;height:var(--day-rail-height);padding:0 1px;border:0;border-bottom:2px solid transparent;
   background:transparent;color:var(--muted);white-space:nowrap;text-align:center;
   font:600 10px/1 var(--mono);letter-spacing:-.02em}
 .gr-day.on{border-bottom-color:var(--accent);color:var(--ink)}
 @media (max-width:360px){.gr-day{font-size:9px;letter-spacing:-.04em}}
-.gr-dayblock{padding-top:22px;scroll-margin-top:76px}
+.gr-dayblock{padding-top:22px;scroll-margin-top:calc(var(--city-rail-height) + var(--day-rail-height))}
 .gr-dayblock + .gr-dayblock{margin-top:34px;padding-top:32px;border-top:1px solid var(--hair2)}
 .gr-day-heading{display:grid;grid-template-columns:68px minmax(0,1fr);gap:14px;align-items:end;margin-bottom:14px}
 .gr-day-date{align-self:stretch;display:flex;align-items:flex-end;border-right:1px solid var(--hair2);padding-right:14px}
