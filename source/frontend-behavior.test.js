@@ -54,7 +54,7 @@ test('A1 renders one continuous city document with four ordered sections and sta
 test('A1 compact rails use the approved 34, 44, and 32 pixel geometry', () => {
   assert.match(appSource, /\.gr-tripbar\{[^}]*min-height:calc\(34px \+ env\(safe-area-inset-top, 0px\)\)/);
   assert.match(appSource, /\.gr-cityrail\{[^}]*position:sticky[^}]*top:0[^}]*height:44px/);
-  assert.match(appSource, /\.gr-dayrail\{[^}]*position:sticky[^}]*top:44px[^}]*height:32px/);
+  assert.match(appSource, /\.gr-dayrail\{[^}]*position:absolute[^}]*top:44px[^}]*height:32px/);
   assert.match(appSource, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\) 44px/);
   assert.match(appSource, /scroll-margin-top:44px/);
   assert.match(appSource, /scroll-margin-top:76px/);
@@ -69,6 +69,21 @@ test('compact trip and day labels remain bilingual and fit the slim rails', () =
   assert.equal(compactDayLabel({ dayLabel: '周日', date: '7月26日' }, 'zh'), '周日 26');
 });
 
+test('editorial day heading parts localize the date lockup', () => {
+  const context = { TRIP, I18N, STOP_IMAGES, GEO };
+  context.globalThis = context;
+  vm.runInNewContext(`${SHARED_JS}\nglobalThis.dayHeadingPartsForTest = typeof dayHeadingParts === 'function' ? dayHeadingParts : null;`, context);
+  assert.equal(typeof context.dayHeadingPartsForTest, 'function');
+  assert.deepEqual(
+    { ...context.dayHeadingPartsForTest({ dayLabel: 'Sun', date: 'Jul 26' }, 'en') },
+    { number: '26', meta: 'SUN · JUL', accessible: 'Sun, Jul 26' },
+  );
+  assert.deepEqual(
+    { ...context.dayHeadingPartsForTest({ dayLabel: '周日', date: '7月26日' }, 'zh') },
+    { number: '26', meta: '周日 · 7月', accessible: '周日，7月26日' },
+  );
+});
+
 test('scrollspy selection is deterministic at section and day boundaries', () => {
   const { activeIndexAtOffset } = sharedExports(['activeIndexAtOffset']);
   const offsets = [78, 720, 2800, 3600];
@@ -77,6 +92,17 @@ test('scrollspy selection is deterministic at section and day boundaries', () =>
   assert.equal(activeIndexAtOffset(offsets, 720), 1);
   assert.equal(activeIndexAtOffset(offsets, 3599), 2);
   assert.equal(activeIndexAtOffset(offsets, 9999), 3);
+});
+
+test('section scrollspy accounts for contextual day chrome at both Days boundaries', () => {
+  const { sectionIndexAtScroll } = sharedExports(['sectionIndexAtScroll']);
+  const offsets = [78, 702, 4971, 6288];
+  assert.equal(sectionIndexAtScroll(offsets, 624, 1), 0);
+  assert.equal(sectionIndexAtScroll(offsets, 625, 1), 1);
+  assert.equal(sectionIndexAtScroll(offsets, 4893, 1), 1);
+  assert.equal(sectionIndexAtScroll(offsets, 4894, 1), 2);
+  assert.equal(sectionIndexAtScroll(offsets, 6242, 1), 2);
+  assert.equal(sectionIndexAtScroll(offsets, 6243, 1), 3);
 });
 
 test('stop lookup searches every stacked day rather than only the active day', () => {
@@ -103,14 +129,38 @@ test('A1 navigation scrolls within the city document without rerendering on scro
   assert.match(appSource, /data-day=/);
 });
 
+test('day rail is frame-level contextual chrome controlled by the active section', () => {
+  assert.match(appSource, /function viewDayRail\(city\)/);
+  assert.match(appSource, /root\.classList\.toggle\('gr-days-active',daysActive\)/);
+  assert.match(appSource, /dayRail\.setAttribute\('aria-hidden',daysActive\?'false':'true'\)/);
+  assert.match(appSource, /root\.innerHTML = body \+ viewDayRail\(city\) \+ tabs \+ overlay\(stop\)/);
+  assert.match(appSource, /\.gr-dayrail\{[^}]*position:absolute[^}]*top:44px[^}]*visibility:hidden[^}]*pointer-events:none/);
+  assert.match(appSource, /\.gr-days-active \.gr-dayrail\{[^}]*visibility:visible[^}]*pointer-events:auto/);
+  assert.doesNotMatch(appSource, /function viewDays\(city\)\{[\s\S]*?return rail \+ days;/);
+});
+
+test('each day uses one editorial heading before its hero without duplicate kickers', () => {
+  assert.match(appSource, /function viewDay\(city, day\)[\s\S]*dayHeadingParts\(day,state\.lang\)/);
+  assert.match(appSource, /gr-day-heading[\s\S]*gr-day-number[\s\S]*gr-day-meta[\s\S]*gr-day-heading-title[\s\S]*gr-dayhero/);
+  assert.doesNotMatch(appSource, /gr-day-kicker|gr-day-index|gr-daytitle/);
+});
+
+test('navigation uses a city-accent underline and a high-contrast language utility', () => {
+  assert.match(appSource, /\.gr-tab\.on\{[^}]*background:var\(--paper\)[^}]*color:var\(--ink\)[^}]*font-weight:700[^}]*box-shadow:inset 0 -3px 0 var\(--accent\)/);
+  assert.doesNotMatch(appSource, /\.gr-tab\.on\{[^}]*background:var\(--ink\)/);
+  assert.match(appSource, /\.gr-lang\{[^}]*background:var\(--ink\)[^}]*color:var\(--near2\)[^}]*font:700/);
+  assert.match(appSource, /state\.lang==='en'\?'中文':'EN'/);
+});
+
 test('city and language switches preserve the scroll-derived itinerary context', () => {
   assert.match(appSource, /var section = state\.activeSection;[\s\S]*state\.cityIdx = \+el\.dataset\.city; state\.activeDay = 0;[\s\S]*render\(\{section:section\}\)/);
   assert.match(appSource, /var context = captureScrollContext\(\);[\s\S]*state\.lang = state\.lang==='en'\?'zh':'en';[\s\S]*render\(\{context:context\}\)/);
   assert.match(appSource, /options\.section==='days'[\s\S]*querySelector\('\[data-day-view="0"\]'\)/);
 });
 
-test('Today badge retains separation from its day photograph', () => {
-  assert.match(appSource, /\.gr-today \+ \.gr-dayhero\{margin-top:10px\}/);
+test('Today badge is integrated into the editorial day metadata', () => {
+  assert.match(appSource, /gr-day-meta-row[\s\S]*day\.isToday \? '<span class="gr-today">[\s\S]*gr-day-heading-title/);
+  assert.doesNotMatch(appSource, /\.gr-today \+ \.gr-dayhero/);
 });
 
 test('nested day anchors are measured in scroll-container coordinates', () => {

@@ -118,6 +118,19 @@ function compactDayLabel(day, lang){
   const weekday = lang === 'zh' ? day.dayLabel : String(day.dayLabel || '').toUpperCase();
   return match ? weekday + ' ' + parseInt(match[1], 10) : weekday;
 }
+function dayHeadingParts(day, lang){
+  if(lang === 'zh'){
+    const match = String(day.date || '').match(/^(\\d{1,2})月(\\d{1,2})日$/);
+    if(!match) return { number: day.date || '', meta: day.dayLabel || '', accessible: [day.dayLabel, day.date].filter(Boolean).join('，') };
+    const month = parseInt(match[1], 10) + '月';
+    const number = String(parseInt(match[2], 10));
+    return { number, meta: (day.dayLabel || '') + ' · ' + month, accessible: (day.dayLabel || '') + '，' + month + number + '日' };
+  }
+  const match = String(day.date || '').match(/^([A-Za-z]{3})\\s+(\\d{1,2})$/);
+  if(!match) return { number: day.date || '', meta: String(day.dayLabel || '').toUpperCase(), accessible: [day.dayLabel, day.date].filter(Boolean).join(', ') };
+  const number = String(parseInt(match[2], 10));
+  return { number, meta: String(day.dayLabel || '').toUpperCase() + ' · ' + match[1].toUpperCase(), accessible: (day.dayLabel || '') + ', ' + match[1] + ' ' + number };
+}
 function formatDay(day, idx, lang, todayIdx){
   return {
     index: idx,
@@ -148,6 +161,15 @@ function activeIndexAtOffset(offsets, marker){
   for(let i = 0; i < offsets.length; i++){
     if(offsets[i] <= marker) active = i;
     else break;
+  }
+  return active;
+}
+function sectionIndexAtScroll(offsets, scrollTop, contextualIndex){
+  let active = 0;
+  for(let i = 1; i < offsets.length; i++){
+    const chrome = i === contextualIndex || i === contextualIndex + 1 ? 77 : 45;
+    if(scrollTop + chrome < offsets[i]) break;
+    active = i;
   }
   return active;
 }

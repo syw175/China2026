@@ -81,7 +81,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
   font:600 12px/1 var(--grotesk);letter-spacing:-.01em}
 .gr-city.on{border-bottom-color:var(--accent);color:var(--ink)}
 .gr-lang{width:44px;height:44px;padding:0;border:0;border-left:1px solid var(--hair2);
-  background:transparent;color:var(--muted);font:600 10px/1 var(--mono);letter-spacing:.04em}
+  background:var(--ink);color:var(--near2);font:700 10px/1 var(--mono);letter-spacing:.04em}
 
 /* One continuous current-city document. */
 .gr-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;position:relative;padding:0}
@@ -119,9 +119,11 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-taste{margin-top:28px}
 
 /* contextual day rail + vertically stacked days */
-.gr-dayrail{position:sticky;top:44px;height:32px;z-index:7;display:grid;grid-template-columns:repeat(4,1fr);
-  margin:0 -20px;background:color-mix(in oklch,var(--paper) 88%,var(--hair));
-  border-bottom:1px solid var(--hair2);box-shadow:0 5px 12px -12px var(--ink)}
+.gr-dayrail{position:absolute;top:44px;left:0;right:0;height:32px;z-index:9;display:grid;grid-template-columns:repeat(4,1fr);
+  background:color-mix(in oklch,var(--paper) 88%,var(--hair));border-bottom:1px solid var(--hair2);
+  box-shadow:0 5px 12px -12px var(--ink);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-4px);
+  transition:opacity .14s ease,transform .14s ease,visibility 0s linear .14s}
+.gr-days-active .gr-dayrail{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s}
 .gr-day{min-width:0;height:32px;padding:0 1px;border:0;border-bottom:2px solid transparent;
   background:transparent;color:var(--muted);white-space:nowrap;text-align:center;
   font:600 10px/1 var(--mono);letter-spacing:-.02em}
@@ -129,14 +131,17 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 @media (max-width:360px){.gr-day{font-size:9px;letter-spacing:-.04em}}
 .gr-dayblock{padding-top:22px;scroll-margin-top:76px}
 .gr-dayblock + .gr-dayblock{margin-top:34px;padding-top:32px;border-top:1px solid var(--hair2)}
-.gr-day-kicker{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
-  color:var(--muted);font:600 10px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase}
-.gr-day-index{color:var(--accent)}
-.gr-today{display:inline-block;font:600 9px/1 var(--mono);letter-spacing:.05em;
-  background:var(--accent);color:oklch(98% .01 70);padding:5px 8px}
+.gr-day-heading{display:grid;grid-template-columns:68px minmax(0,1fr);gap:14px;align-items:end;margin-bottom:14px}
+.gr-day-date{align-self:stretch;display:flex;align-items:flex-end;border-right:1px solid var(--hair2);padding-right:14px}
+.gr-day-number{font:700 52px/.78 var(--grotesk);letter-spacing:-.06em;color:var(--accent)}
+.gr-day-copy{min-width:0}
+.gr-day-meta-row{display:flex;align-items:center;gap:7px;min-height:18px}
+.gr-day-meta{color:var(--muted);font:600 9px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase}
+.gr-day-heading-title{font:700 24px/1.08 var(--grotesk);letter-spacing:-.015em;margin-top:4px}
+.gr-day-heading .gr-sub{font-size:13px;margin-top:2px}
+.gr-today{display:inline-block;font:700 8px/1 var(--mono);letter-spacing:.05em;
+  background:var(--accent);color:oklch(98% .01 70);padding:4px 6px}
 .gr-dayhero{margin-top:0}
-.gr-today + .gr-dayhero{margin-top:10px}
-.gr-daytitle{font:700 24px/1.2 var(--grotesk);margin-top:14px;letter-spacing:-.01em}
 .gr-stops{margin-top:20px;display:flex;flex-direction:column}
 .gr-stop{display:grid;grid-template-columns:50px 1fr;text-align:left;background:none;border:none;
   border-top:1px solid var(--hair);padding:14px 0}
@@ -188,7 +193,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
   border-top:2px solid var(--ink);background:var(--paper);padding-bottom:env(safe-area-inset-bottom, 0px)}
 .gr-tab{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 2px;background:transparent;border:none;
   font:600 11px/1 var(--mono);letter-spacing:.03em;color:var(--ink);white-space:nowrap}
-.gr-tab.on{background:var(--ink);color:oklch(98% .01 70)}
+.gr-tab.on{background:var(--paper);color:var(--ink);font-weight:700;box-shadow:inset 0 -3px 0 var(--accent)}
 
 /* stop overlay */
 .gr-overlay{position:absolute;inset:0;background:oklch(15% .01 90 / .6);
@@ -334,6 +339,19 @@ function compactDayLabel(day, lang){
   const weekday = lang === 'zh' ? day.dayLabel : String(day.dayLabel || '').toUpperCase();
   return match ? weekday + ' ' + parseInt(match[1], 10) : weekday;
 }
+function dayHeadingParts(day, lang){
+  if(lang === 'zh'){
+    const match = String(day.date || '').match(/^(\d{1,2})月(\d{1,2})日$/);
+    if(!match) return { number: day.date || '', meta: day.dayLabel || '', accessible: [day.dayLabel, day.date].filter(Boolean).join('，') };
+    const month = parseInt(match[1], 10) + '月';
+    const number = String(parseInt(match[2], 10));
+    return { number, meta: (day.dayLabel || '') + ' · ' + month, accessible: (day.dayLabel || '') + '，' + month + number + '日' };
+  }
+  const match = String(day.date || '').match(/^([A-Za-z]{3})\s+(\d{1,2})$/);
+  if(!match) return { number: day.date || '', meta: String(day.dayLabel || '').toUpperCase(), accessible: [day.dayLabel, day.date].filter(Boolean).join(', ') };
+  const number = String(parseInt(match[2], 10));
+  return { number, meta: String(day.dayLabel || '').toUpperCase() + ' · ' + match[1].toUpperCase(), accessible: (day.dayLabel || '') + ', ' + match[1] + ' ' + number };
+}
 function formatDay(day, idx, lang, todayIdx){
   return {
     index: idx,
@@ -364,6 +382,15 @@ function activeIndexAtOffset(offsets, marker){
   for(let i = 0; i < offsets.length; i++){
     if(offsets[i] <= marker) active = i;
     else break;
+  }
+  return active;
+}
+function sectionIndexAtScroll(offsets, scrollTop, contextualIndex){
+  let active = 0;
+  for(let i = 1; i < offsets.length; i++){
+    const chrome = i === contextualIndex || i === contextualIndex + 1 ? 77 : 45;
+    if(scrollTop + chrome < offsets[i]) break;
+    active = i;
   }
   return active;
 }
@@ -511,12 +538,13 @@ function viewOverview(city){
 }
 
 function viewDay(city, day){
-  var h = '<div>';
-  h += '<div class="gr-day-kicker"><span class="gr-day-index">'+(state.lang==='zh'?'第':'DAY ')+String(day.dayNum).padStart(2,'0')+(state.lang==='zh'?'天':'')+'</span>'
-    + '<span>'+esc(day.dayLabel)+' · '+esc(day.date)+'</span></div>';
-  if(day.isToday) h += '<div class="gr-today">'+esc(t('today',state.lang))+'</div>';
+  var h = '<div>', heading = dayHeadingParts(day,state.lang);
+  h += '<header class="gr-day-heading">'
+    + '<time class="gr-day-date" aria-label="'+esc(heading.accessible)+'"><span class="gr-day-number" aria-hidden="true">'+esc(heading.number)+'</span></time>'
+    + '<div class="gr-day-copy"><div class="gr-day-meta-row"><span class="gr-day-meta" aria-hidden="true">'+esc(heading.meta)+'</span>'
+    + (day.isToday ? '<span class="gr-today">'+esc(t('today',state.lang))+'</span>' : '')
+    + '</div><h2 class="gr-day-heading-title">'+esc(day.title.main)+'</h2>'+sub(day.title)+'</div></header>';
   h += '<div class="gr-dayhero">' + photo('gr-photo--169', 'DAY_'+day.dayNum+'.JPG', dayImg(city.id, day.index), day.title.main) + '</div>';
-  h += '<h2 class="gr-daytitle">'+esc(day.title.main)+'</h2>' + sub(day.title);
   h += '<div class="gr-stops">' + day.items.map(function(it){
       return '<button class="gr-stop" data-open="'+esc(it.id)+'">'
         + '<div class="gr-stop-time">'+esc(it.time)+'</div>'
@@ -531,17 +559,19 @@ function viewDay(city, day){
   return h + '</div>';
 }
 
-function viewDays(city){
-  var rail = '<nav class="gr-dayrail" aria-label="'+esc(t('daysNav',state.lang))+'" style="grid-template-columns:repeat('+city.days.length+',1fr)">'
+function viewDayRail(city){
+  return '<nav class="gr-dayrail" aria-label="'+esc(t('daysNav',state.lang))+'" aria-hidden="true" style="grid-template-columns:repeat('+city.days.length+',1fr)">'
     + city.days.map(function(day){
       var fullLabel = day.dayLabel + ', ' + day.date;
       return '<button class="gr-day'+(day.index===state.activeDay?' on':'')+'" data-day="'+day.index+'" aria-label="'+esc(fullLabel)+'"'
         +(day.index===state.activeDay?' aria-current="date"':'')+'>'+esc(compactDayLabel(day,state.lang))+'</button>';
     }).join('') + '</nav>';
-  var days = city.days.map(function(day){
+}
+
+function viewDays(city){
+  return city.days.map(function(day){
     return '<article class="gr-dayblock" data-day-view="'+day.index+'" id="day-'+city.id+'-'+day.index+'">'+viewDay(city,day)+'</article>';
   }).join('');
-  return rail + days;
 }
 
 function viewMap(city){
@@ -629,6 +659,10 @@ function captureScrollContext(){
   return anchor ? { section:state.activeSection, day:state.activeDay, delta:scroller.scrollTop-elementScrollOffset(anchor,scroller) } : null;
 }
 function updateNavigation(){
+  var daysActive = state.activeSection==='days';
+  root.classList.toggle('gr-days-active',daysActive);
+  var dayRail = root.querySelector('.gr-dayrail');
+  if(dayRail) dayRail.setAttribute('aria-hidden',daysActive?'false':'true');
   var sectionButtons = root.querySelectorAll('[data-section]');
   for(var i=0;i<sectionButtons.length;i++){
     var sectionOn = sectionButtons[i].dataset.section===state.activeSection;
@@ -650,7 +684,7 @@ function updateScrollState(){
   var sections = Array.prototype.slice.call(scroller.querySelectorAll('[data-section-view]'));
   if(!sections.length) return;
   var sectionOffsets = sections.map(function(section){ return elementScrollOffset(section,scroller); });
-  var sectionIdx = activeIndexAtOffset(sectionOffsets,scroller.scrollTop+45);
+  var sectionIdx = sectionIndexAtScroll(sectionOffsets,scroller.scrollTop,1);
   if(scroller.scrollTop+scroller.clientHeight>=scroller.scrollHeight-2) sectionIdx=sections.length-1;
   state.activeSection = sections[sectionIdx].dataset.sectionView;
   if(state.activeSection==='days'){
@@ -737,7 +771,7 @@ function render(options){
     + '<div class="gr-dates">'+esc(compactTripDates(data.dates,state.lang))+'</div></header>'
     + '<nav class="gr-cityrail" aria-label="'+esc(t('citiesNav',state.lang))+'">' + data.cities.map(function(c,i){
         return '<button class="gr-city'+(i===state.cityIdx?' on':'')+'" data-city="'+i+'"'+(i===state.cityIdx?' aria-current="true"':'')+'>'+esc(c.name.main)+'</button>';
-      }).join('') + '<button class="gr-lang" data-lang-toggle aria-label="'+esc(langLabel)+'">'+(state.lang==='en'?'中':'EN')+'</button></nav>';
+      }).join('') + '<button class="gr-lang" data-lang-toggle aria-label="'+esc(langLabel)+'">'+(state.lang==='en'?'中文':'EN')+'</button></nav>';
   var body = '<div class="gr-scroll">'+head+viewCityDocument(city)+'</div>';
 
   var tabs = '<nav class="gr-tabs" aria-label="'+esc(t('sectionsNav',state.lang))+'">'
@@ -747,7 +781,7 @@ function render(options){
     + '<button class="gr-tab" data-section="hotel">'+esc(t('tabStay',state.lang))+'</button>'
     + '</nav>';
 
-  root.innerHTML = body + tabs + overlay(stop);
+  root.innerHTML = body + viewDayRail(city) + tabs + overlay(stop);
   var scroller = currentScroller();
   if(scroller) scroller.addEventListener('scroll',scheduleScrollState,{passive:true});
   restoreScroll(options||null);
