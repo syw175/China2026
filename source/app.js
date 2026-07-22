@@ -78,13 +78,14 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 /* scroll body */
 .gr-scroll{flex:1 1 auto;overflow-y:auto;padding:20px}
 
-/* photo placeholders */
+/* photo frames */
 .gr-photo{position:relative;width:100%;background:var(--stripe);border:2px solid var(--ink)}
 .gr-photo--1610{aspect-ratio:16/10}
 .gr-photo--169{aspect-ratio:16/9}
+.gr-photo--stop{background:var(--near2)}
 .gr-photo-cap{position:absolute;left:10px;bottom:10px;font:500 11px/1.4 var(--mono);color:var(--ink);
   background:oklch(96% .01 70 / .9);padding:5px 8px}
-.gr-photo-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.gr-photo-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 
 /* generic section header */
 .gr-sechead{font:700 13px/1 var(--grotesk);letter-spacing:.02em;text-transform:uppercase;
@@ -196,6 +197,9 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-stopdesc{font:400 14px/1.65 var(--sans);color:var(--body2);margin-top:16px}
 .gr-sheet .gr-addr{margin-top:16px}
 .gr-sheet .gr-nearby-sec{margin-top:22px}
+@media (max-height:600px){
+  .gr-sheet .gr-photo--stop{width:min(100%,320px);margin-left:auto;margin-right:auto}
+}
 @media (prefers-reduced-motion:no-preference){
   .gr-overlay{animation:grFade .15s ease}
 }
@@ -221,6 +225,16 @@ function photo(mod, cap, src, alt, eager){
 }
 function cityImg(id){ return 'images/' + id + '-city.webp'; }
 function dayImg(id, idx){ return 'images/' + id + '-' + (idx + 1) + '.webp'; }
+function stopPhoto(stop){
+  if(!stop.photo) return '';
+  var alt = stop.photo.alt || stop.name.main;
+  var srcset = stop.photo.smallSrc + ' 640w, ' + stop.photo.largeSrc + ' 1280w';
+  return '<div class="gr-photo gr-photo--1610 gr-photo--stop">'
+    + '<img class="gr-photo-img" src="'+esc(stop.photo.smallSrc)+'" srcset="'+esc(srcset)+'" '
+    + 'sizes="(min-width: 640px) 420px, calc(100vw - 40px)" width="1280" height="800" '
+    + 'alt="'+esc(alt)+'" loading="lazy" decoding="async" '
+    + 'onload="this.style.opacity=1" onerror="this.parentNode.remove()"></div>';
+}
 // Turn a phone string (one or "/"-separated numbers) into tappable tel: links,
 // keeping the display formatting; href strips to leading + and digits.
 function telLinks(str){
@@ -337,7 +351,7 @@ function overlay(stop){
   if(!stop) return '';
   var h = '<div class="gr-overlay" data-backdrop><div class="gr-sheet" role="dialog" aria-modal="true" aria-labelledby="gr-stop-title">';
   h += '<div class="gr-close-row"><button class="gr-close" data-close aria-label="'+esc(t('close',state.lang))+'">CLOSE</button></div>';
-  h += photo('gr-photo--1610', 'STOP.JPG');
+  h += stopPhoto(stop);
   h += '<div class="gr-stopmeta">'+esc(stop.time)+' / '+up(stop.typeLabel)+'</div>';
   h += '<h2 class="gr-stopname" id="gr-stop-title">'+esc(stop.name.main)+'</h2>'
      + (stop.name.sub ? '<div class="gr-stopname-sub">'+esc(stop.name.sub)+'</div>' : '');
@@ -458,7 +472,7 @@ return `<title>Family China Trip · 家庭中国之旅</title>
 <meta name="theme-color" content="#e9e3d6">
 <style>${CSS}</style>
 <div class="gr-frame" id="gr-root"></div>
-<script>const TRIP=${DATA_JSON.TRIP};const I18N=${DATA_JSON.I18N};const GEO=${DATA_JSON.GEO};\n${JS}</script>`;
+<script>const TRIP=${DATA_JSON.TRIP};const I18N=${DATA_JSON.I18N};const GEO=${DATA_JSON.GEO};const STOP_IMAGES=${DATA_JSON.STOP_IMAGES};\n${JS}</script>`;
 }
 
 module.exports = { buildA };
