@@ -125,6 +125,7 @@ function formatHotel(hotel, lang){
     searchKey: searchKeyOf(hotel.name, hotel.address),
     phone: hotel.phone,
     confirmation: hotel.confirmation,
+    confirmationUrl: hotel.confirmationUrl || '',
     checkInTime: hotel.checkIn.time,
     checkInNote: bilingual(hotel.checkIn.note, lang).main,
     checkOutTime: hotel.checkOut.time,

@@ -133,6 +133,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 /* stay tab */
 .gr-hotelname{font:700 26px/1.2 var(--grotesk);margin-top:16px}
 .gr-addr{display:flex;gap:8px;align-items:center;margin-top:12px;font:500 12px/1.4 var(--mono);color:var(--accent)}
+.gr-doc{color:var(--accent);font-weight:600;white-space:nowrap}
 .gr-facts{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;
   border-top:2px solid var(--ink);border-left:2px solid var(--ink)}
 .gr-fact{padding:12px;border-right:2px solid var(--ink)}
@@ -290,7 +291,9 @@ function viewHotel(city){
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkIn',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkInTime)+'</div></div>'
      + '<div class="gr-fact row1"><div class="gr-fact-k">'+up(t('checkOut',state.lang))+'</div><div class="gr-fact-v">'+esc(ho.checkOutTime)+'</div></div>'
      + '<div class="gr-fact"><div class="gr-fact-k">'+up(t('phone',state.lang))+'</div><div class="gr-fact-v sm">'+telLinks(ho.phone)+'</div></div>'
-     + '<div class="gr-fact"><div class="gr-fact-k">'+up(t('wifi',state.lang))+'</div><div class="gr-fact-v sm">'+esc(ho.wifi)+'</div></div>'
+     + '<div class="gr-fact"><div class="gr-fact-k">'+up(t('checkinDoc',state.lang))+'</div><div class="gr-fact-v sm">'
+       + (ho.confirmationUrl ? '<a class="gr-doc" href="'+esc(ho.confirmationUrl)+'" target="_blank" rel="noopener">'+esc(t('openDoc',state.lang))+' &#8594;</a>' : '—')
+       + '</div></div>'
      + '</div>';
   h += '<div class="gr-conf">CONF# '+esc(ho.confirmation)+'</div>';
   if(ho.checkInNote) h += '<div class="gr-note">'+esc(ho.checkInNote)+'</div>';
