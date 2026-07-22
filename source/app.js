@@ -39,11 +39,11 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 /* visible keyboard focus (ink stays legible on paper and on accent fills) */
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 /* press feedback (tap-highlight is disabled, so restore a "tap registered" cue) */
-.gr-city,.gr-day,.gr-tab,.gr-stop,.gr-seg button,.gr-maprow,.gr-nearrow,.gr-addr,.gr-doc,.gr-tel,.gr-lang,.gr-close,.gr-hotel-cta{transition:background .12s ease,opacity .12s ease}
-.gr-city:active,.gr-day:active,.gr-tab:active,.gr-stop:active,.gr-seg button:active,.gr-maprow:active,.gr-nearrow:active,.gr-addr:active,.gr-doc:active,.gr-tel:active,.gr-lang:active,.gr-close:active{opacity:.6}
+.gr-city,.gr-day,.gr-tab,.gr-stop,.gr-maprow,.gr-nearrow,.gr-addr,.gr-doc,.gr-tel,.gr-lang,.gr-close,.gr-hotel-cta{transition:background .12s ease,opacity .12s ease}
+.gr-city:active,.gr-day:active,.gr-tab:active,.gr-stop:active,.gr-maprow:active,.gr-nearrow:active,.gr-addr:active,.gr-doc:active,.gr-tel:active,.gr-lang:active,.gr-close:active{opacity:.6}
 /* hover feedback, real-hover devices only (avoids sticky hover on touch) */
 @media (hover:hover){
-  .gr-city:not(.on):hover,.gr-tab:not(.on):hover,.gr-seg button:not(.on):hover{background:oklch(92% .012 70)}
+  .gr-city:not(.on):hover,.gr-tab:not(.on):hover{background:oklch(92% .012 70)}
   .gr-day:not(.on):hover{background:oklch(93% .012 70)}
   .gr-stop:hover,.gr-maprow:hover,.gr-nearrow:hover{background:oklch(95% .012 70)}
   .gr-addr:hover,.gr-doc:hover,.gr-tel:hover{text-decoration:underline}
@@ -113,6 +113,11 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-day.on{background:var(--accent);color:oklch(98% .01 70)}
 .gr-day-w{display:block;font:600 9px/1 var(--mono);letter-spacing:.04em;opacity:.75}
 .gr-day-d{display:block;font:700 13px/1.3 var(--grotesk);margin-top:4px}
+@media (max-width:360px){
+  .gr-day{min-width:0;padding:8px 3px}
+  .gr-day-w{font-size:8px;white-space:nowrap}
+  .gr-day-d{font-size:12px;white-space:nowrap}
+}
 .gr-today{margin-top:10px;display:inline-block;font:600 10px/1 var(--mono);letter-spacing:.05em;
   background:var(--accent);color:oklch(98% .01 70);padding:5px 8px}
 .gr-dayhero{margin-top:16px}
@@ -133,11 +138,6 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 /* map tab */
 .gr-h1{font:700 24px/1.2 var(--grotesk)}
 .gr-maphint{font:500 11px/1.5 var(--mono);color:var(--muted);margin-top:4px}
-.gr-seg{display:grid;grid-template-columns:1fr 1fr;margin-top:14px;border:2px solid var(--ink)}
-.gr-seg button{font:600 11px/1 var(--mono);letter-spacing:.03em;padding:10px 6px;border:none;
-  background:transparent;color:var(--ink)}
-.gr-seg button:first-child{border-right:1px solid var(--ink)}
-.gr-seg button.on{background:var(--accent);color:oklch(98% .01 70)}
 .gr-maplist{margin-top:6px;display:flex;flex-direction:column}
 .gr-maprow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:12px 0;
   border-bottom:1px solid var(--hair)}
@@ -215,7 +215,7 @@ function loadLanguage(){
 function saveLanguage(lang){
   try{ window.localStorage.setItem(LANGUAGE_STORAGE_KEY,lang); }catch(e){}
 }
-var state = { lang:loadLanguage(), cityIdx:0, tab:'city', dayIdx:0, openStop:null, mapScope:'day' };
+var state = { lang:loadLanguage(), cityIdx:0, tab:'city', dayIdx:0, openStop:null };
 var root;
 var lastTrigger = null; // stop-row id that opened the dialog, for focus restore
 
@@ -292,7 +292,7 @@ function viewDay(city, day){
         + '<span class="gr-day-w">'+esc(d.dayLabel)+'</span>'
         + '<span class="gr-day-d">'+esc(d.date)+'</span></button>';
     }).join('') + '</div>';
-  if(day.isToday) h += '<div class="gr-today">TODAY</div>';
+  if(day.isToday) h += '<div class="gr-today">'+esc(t('today',state.lang))+'</div>';
   h += '<div class="gr-dayhero">' + photo('gr-photo--169', 'DAY_'+day.dayNum+'.JPG', dayImg(city.id, day.index), day.title.main) + '</div>';
   h += '<h2 class="gr-daytitle">'+esc(day.title.main)+'</h2>' + sub(day.title);
   h += '<div class="gr-stops">' + day.items.map(function(it){
@@ -309,14 +309,10 @@ function viewDay(city, day){
   return h + '</div>';
 }
 
-function viewMap(city, day){
-  var items = state.mapScope === 'day' ? day.items : city.days.reduce(function(a,d){ return a.concat(d.items); }, []);
+function viewMap(city){
+  var items = dedupeMapItems(city.days.reduce(function(items, day){ return items.concat(day.items); }, []));
   var h = '<div>';
-  h += '<h2 class="gr-h1">MAP</h2><div class="gr-maphint">EVERY STOP &#8212; TAP TO OPEN IN MAPS</div>';
-  h += '<div class="gr-seg">'
-     + '<button data-mapscope="day" class="'+(state.mapScope==='day'?'on':'')+'">'+esc(day.dayLabel+' '+day.date)+'</button>'
-     + '<button data-mapscope="city" class="'+(state.mapScope==='city'?'on':'')+'">'+esc(city.name.main)+'</button>'
-     + '</div>';
+  h += '<h2 class="gr-h1">'+esc(t('mapTitle',state.lang))+'</h2><div class="gr-maphint">'+esc(t('mapHint',state.lang))+'</div>';
   h += '<div class="gr-maplist">' + items.map(function(mi){
       return '<a class="gr-maprow" '+mapAttrs(mi)+'>'
         + '<div style="min-width:0"><div class="gr-maprow-n">'+esc(mi.name.main)+'</div>'
@@ -395,7 +391,7 @@ function render(){
 
   var panel = state.tab==='city' ? viewCity(city)
             : state.tab==='day' ? viewDay(city, day)
-            : state.tab==='map' ? viewMap(city, day)
+            : state.tab==='map' ? viewMap(city)
             : viewHotel(city);
   var body = '<div class="gr-scroll">'+panel+'</div>';
 
@@ -422,7 +418,6 @@ document.addEventListener('click', function(e){
   if((el=e.target.closest('[data-city]'))){ state.cityIdx = +el.dataset.city; state.dayIdx = 0; state.openStop = null; render(); return; }
   if((el=e.target.closest('[data-tab]'))){ state.tab = el.dataset.tab; state.openStop = null; render(); return; }
   if((el=e.target.closest('[data-day]'))){ state.dayIdx = +el.dataset.day; state.openStop = null; render(); return; }
-  if((el=e.target.closest('[data-mapscope]'))){ state.mapScope = el.dataset.mapscope; render(); return; }
   if((el=e.target.closest('[data-open]'))){ state.openStop = el.dataset.open; lastTrigger = el.dataset.open; render(); return; }
   if(e.target.closest('[data-close]')){ state.openStop = null; render(); return; }
   if(e.target.hasAttribute('data-backdrop')){ state.openStop = null; render(); return; }
