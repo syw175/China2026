@@ -91,6 +91,7 @@ function formatItem(it, lang){
     searchKey: searchKeyOf(it.name, it.address),
     booking: !!it.bookingRequired,
     bookingLabel: it.bookingRequired ? t('bookingRequired', lang) : t('noBooking', lang),
+    photo: STOP_IMAGES[it.id] || null,
     nearby: (it.nearby || []).map(n => formatNear(n, lang)),
   };
 }
