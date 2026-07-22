@@ -409,30 +409,31 @@ document.addEventListener('click', function(e){
   if(e.target.hasAttribute('data-backdrop')){ state.openStop = null; render(); return; }
 });
 // Amap address links (modern, cross-browser, graceful degradation):
-//  - iOS: a tap opens the native app directly to the exact pin via iosamap://
-//    viewMap (coordinates) — same tab, itinerary preserved. This is the user's
-//    chosen iOS behaviour; a new-tab fallback can't coexist with in-place
-//    auto-open on WebKit. Missing coords → name-search scheme.
-//  - Android / desktop / other: open the exact-pin Amap H5 map (href) in a NEW
-//    tab. callnative=1 auto-launches the app on Android; otherwise the web map
-//    shows. Itinerary tab always preserved.
+//  - iPhone/iPod ONLY: tap opens the native app in place via iosamap://viewMap
+//    (exact pin). These devices belong to the Amap-equipped family that wants
+//    the one-tap open. A failed custom-scheme navigation errors on iOS
+//    ("address is invalid"), so we only do this where the app is expected.
+//  - iPad / Android / desktop / everything else: open the exact-pin uri.amap.com
+//    H5 map (href) in a NEW tab. It's a valid https URL, so it NEVER triggers the
+//    "address is invalid" error when Amap isn't installed; callnative=1 also
+//    auto-launches the app on Android. (Modern iPadOS Safari reports its UA as
+//    "Macintosh", and iPadOS can't be reliably detected as having Amap, so iPad
+//    must not use the custom scheme — that was the cause of the reported error.)
 function ua(){ return navigator.userAgent || ''; }
-function isIOS(){ return /iPhone|iPad|iPod/i.test(ua()) || (/Macintosh/.test(ua()) && navigator.maxTouchPoints > 1); }
-function isAndroid(){ return /Android/i.test(ua()); }
+function isIPhone(){ return /iPhone|iPod/i.test(ua()); }
 function amapNativeUrl(a){
-  var scheme = isAndroid() ? 'androidamap' : 'iosamap';
   var lat = a.getAttribute('data-lat'), lon = a.getAttribute('data-lon'), name = a.getAttribute('data-name');
-  if(lat && lon) return scheme + '://viewMap?sourceApplication=ChinaTrip&poiname=' + encodeURIComponent(name || '') + '&lat=' + lat + '&lon=' + lon + '&dev=0';
-  return scheme + '://poi?sourceApplication=ChinaTrip&name=' + encodeURIComponent(a.getAttribute('data-key') || name || '') + '&dev=0';
+  if(lat && lon) return 'iosamap://viewMap?sourceApplication=ChinaTrip&poiname=' + encodeURIComponent(name || '') + '&lat=' + lat + '&lon=' + lon + '&dev=0';
+  return 'iosamap://poi?sourceApplication=ChinaTrip&name=' + encodeURIComponent(a.getAttribute('data-key') || name || '') + '&dev=0';
 }
 document.addEventListener('click', function(e){
   var a = e.target.closest('a[data-lat], a[data-key]');
   if(!a) return;
   e.preventDefault();
-  if(isIOS()){
-    window.location.href = amapNativeUrl(a); // open the app in place; itinerary tab stays put
+  if(isIPhone()){
+    window.location.href = amapNativeUrl(a); // iPhone: open the app in place
   } else {
-    window.open(a.getAttribute('href'), '_blank', 'noopener'); // Android auto-launches app from H5; desktop shows map
+    window.open(a.getAttribute('href'), '_blank', 'noopener'); // iPad/Android/desktop: valid H5 URL, no scheme error
   }
 });
 document.addEventListener('keydown', function(e){
