@@ -89,7 +89,8 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-section{position:relative;padding:20px;scroll-margin-top:var(--city-rail-height)}
 .gr-section--overview{min-block-size:calc(100cqb - var(--trip-row-height) - var(--city-rail-height) - env(safe-area-inset-top, 0px))}
 .gr-section--days{padding:0 20px 34px;border-top:2px solid var(--ink)}
-.gr-section--map,.gr-section--hotel{min-height:calc(100% - var(--city-rail-height));padding-top:28px;border-top:2px solid var(--ink)}
+.gr-section--map,.gr-section--hotel{padding-top:28px;border-top:2px solid var(--ink)}
+.gr-section--hotel{min-block-size:calc(100cqb - var(--city-rail-height))}
 
 /* photo frames */
 .gr-photo{position:relative;width:100%;background:var(--stripe);border:2px solid var(--ink)}
