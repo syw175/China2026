@@ -81,6 +81,44 @@ test('Hotel fills the scroll viewport below the sticky city rail', () => {
   assert.doesNotMatch(appSource, /gr-hotel-spacer|ResizeObserver/);
 });
 
+test('Hotel details omit confirmation identifiers while retaining every PDF link', () => {
+  const { loadTrip } = sharedExports(['loadTrip']);
+  for (const city of TRIP.cities) {
+    assert.equal(Object.hasOwn(city.hotel, 'confirmation'), false);
+    assert.match(city.hotel.confirmationUrl, /^https:\/\/www\.icloud\.com\/iclouddrive\//);
+  }
+  for (const city of loadTrip('en').cities) {
+    assert.equal(Object.hasOwn(city.hotel, 'confirmation'), false);
+    assert.match(city.hotel.confirmationUrl, /^https:\/\/www\.icloud\.com\/iclouddrive\//);
+  }
+  assert.equal(I18N.confirmation, undefined);
+  assert.doesNotMatch(SHARED_JS, /confirmation:\s*hotel\.confirmation/);
+  assert.doesNotMatch(appSource, /gr-conf|CONF#|ho\.confirmation(?!Url)/);
+});
+
+test('Guangzhou uses the approved booking note and concise Dim Sum label', () => {
+  const guangzhou = TRIP.cities.find((city) => city.id === 'gz');
+  assert.deepEqual(guangzhou.hotel.checkIn.note, {
+    en: 'Lead guest on this booking is under Michelle, click on Check-In PDF for details.',
+    zh: '此预订的主入住人登记在 Michelle 名下；详情请点击「入住确认单」查看。',
+  });
+  assert.deepEqual(guangzhou.mustEats[0], {
+    name: { en: 'Dim Sum', zh: '早茶点心' },
+    note: { en: 'Shrimp dumplings & buns', zh: '虾饺与包点' },
+  });
+});
+
+test('Hotel fact labels stay matched while compact phone links use the city accent', () => {
+  assert.match(appSource, /\.gr-fact-k\{font:600 9px\/1 var\(--mono\);letter-spacing:\.05em;color:var\(--muted\)\}/);
+  assert.match(appSource, /\.gr-fact-v\.sm\{font:600 12px\/1\.3 var\(--sans\)\}/);
+  assert.match(appSource, /\.gr-tel\{color:var\(--accent\)\}/);
+  assert.match(appSource, /\.gr-doc\{color:var\(--accent\);font-weight:600;white-space:nowrap\}/);
+  assert.match(appSource, /gr-fact-k[^>]*>'\+up\(t\('phone',state\.lang\)\)/);
+  assert.match(appSource, /gr-fact-k[^>]*>'\+up\(t\('checkinDoc',state\.lang\)\)/);
+  assert.match(appSource, /gr-fact-v sm[^>]*>'\+telLinks\(ho\.phone\)/);
+  assert.match(appSource, /gr-fact-v sm[^>]*>'[\s\S]*ho\.confirmationUrl/);
+});
+
 test('trip header renders three inert macOS traffic lights before the title', () => {
   assert.match(
     appSource,

@@ -43,9 +43,9 @@ const guangzhou = {
   hotel: {
     name: { en: 'Guangzhou Hakka Apartment Beijing Road', zh: '金铂·茶阳复式公寓（北京路店）' },
     address: { text: GZ_HOTEL_ADDR, mapUrl: GZ_HOTEL_MAP },
-    phone: '+86 20 8054 4120', confirmation: '1013153654',
+    phone: '+86 20 8054 4120',
     confirmationUrl: 'https://www.icloud.com/iclouddrive/00bFTz0p-Q61lnpDJxJNoz-Eg#Guangzhou',
-    checkIn: { time: '14:00', note: { en: 'Lead guest changed to Michelle Xin Yi Liang; otherwise show the confirmation PDF.', zh: '主入住人已改为Michelle Xin Yi Liang；如有问题请出示确认单PDF。' } },
+    checkIn: { time: '14:00', note: { en: 'Lead guest on this booking is under Michelle, click on Check-In PDF for details.', zh: '此预订的主入住人登记在 Michelle 名下；详情请点击「入住确认单」查看。' } },
     checkOut: { time: '12:00', note: { en: 'Ask the host about keeping our bags until we leave.', zh: '与房东确认能否寄存行李至我们离开。' } },
     wifi: { en: 'Premium Wi-Fi included, no password', zh: '包含高级 Wi-Fi，无需密码' },
     notes: [
@@ -53,7 +53,7 @@ const guangzhou = {
     ],
   },
   mustEats: [
-    { name: { en: 'Morning Dim Sum', zh: '早茶点心' }, note: { en: 'Shrimp dumplings & buns', zh: '虾饺与包点' } },
+    { name: { en: 'Dim Sum', zh: '早茶点心' }, note: { en: 'Shrimp dumplings & buns', zh: '虾饺与包点' } },
     { name: { en: 'Wonton Noodles', zh: '云吞面' }, note: { en: 'Springy egg noodles', zh: '弹牙鸡蛋面' } },
     { name: { en: 'Roast Goose', zh: '烧鹅' }, note: { en: 'Crispy skin classic', zh: '脆皮经典' } },
     { name: { en: 'Rice Noodle Rolls', zh: '肠粉' }, note: { en: 'Silky steamed rolls', zh: '滑嫩蒸卷' } },
@@ -223,7 +223,7 @@ const shanghai = {
   hotel: {
     name: { en: 'Linju Homestay (Jing’an Temple Branch)', zh: '柃居民宿(静安寺店)' },
     address: { text: SH_HOTEL_ADDR, mapUrl: SH_HOTEL_MAP },
-    phone: '+86 136 5172 8077 / +86 136 0620 9930', confirmation: '1227103893421544',
+    phone: '+86 136 5172 8077 / +86 136 0620 9930',
     confirmationUrl: 'https://www.icloud.com/iclouddrive/03azomjrwhHAB_HvjpqCOkCQg#Shanghai',
     checkIn: { time: '14:00', note: { en: 'Message the host with your expected arrival time for the exact unit and check-in instructions.', zh: '请提前告知房东预计到达时间，获取具体房号与入住指引。' } },
     checkOut: { time: '12:00', note: { en: 'Confirm luggage storage with the host if needed.', zh: '如需寄存行李，请与房东确认。' } },
@@ -451,7 +451,7 @@ const beijing = {
   hotel: {
     name: { en: 'Miyue LOFT Duplex Homestay — Sanlitun Workers’ Stadium', zh: '复式|蜜悦民宿(三里屯·工人体育场地铁站店)' },
     address: { text: BJ_HOTEL_ADDR, mapUrl: BJ_HOTEL_MAP },
-    phone: '+86 185 1111 1664', confirmation: '1227103978064815',
+    phone: '+86 185 1111 1664',
     confirmationUrl: 'https://www.icloud.com/iclouddrive/08aDpR7s2BfFho7JKej8rH8fg#Beijing',
     checkIn: { time: '14:00', note: { en: 'Add the housekeeper’s WeChat (+86 185 1111 1664) for the host meet-up at Building 21.', zh: '请添加管家微信（+86 185 1111 1664），在21号楼与房东会合。' } },
     checkOut: { time: '12:00', note: { en: 'Confirm bag storage until 16:30.', zh: '确认行李可寄存至16:30。' } },
@@ -737,7 +737,6 @@ const I18N = {
   wifi: { en: 'Wi-Fi', zh: '无线网络' },
   checkinDoc: { en: 'Check-in PDF', zh: '入住确认单' },
   openDoc: { en: 'Open', zh: '打开' },
-  confirmation: { en: 'Confirmation', zh: '确认号' },
   stay: { en: 'Your stay', zh: '入住信息' },
   goodToKnow: { en: 'Good to know', zh: '温馨提示' },
   hotelDetails: { en: 'Hotel details', zh: '酒店详情' },
