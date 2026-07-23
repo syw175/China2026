@@ -74,6 +74,27 @@ test('Overview fills unused scroll viewport using centralized opening chrome geo
   assert.doesNotMatch(appSource, /ResizeObserver/);
 });
 
+test('trip header renders three inert macOS traffic lights before the title', () => {
+  assert.match(
+    appSource,
+    /<header class="gr-tripbar"><span class="gr-window-dots" aria-hidden="true"><span class="gr-window-dot gr-window-dot--red"><\/span><span class="gr-window-dot gr-window-dot--amber"><\/span><span class="gr-window-dot gr-window-dot--green"><\/span><\/span><h1 class="gr-title">/,
+  );
+  assert.doesNotMatch(appSource, /gr-window-dot[^>]*(?:button|href=|data-|tabindex=|role=|title=|aria-label=)/);
+  assert.match(appSource, /\.gr-window-dots\{[^}]*display:flex[^}]*gap:6px[^}]*pointer-events:none[^}]*user-select:none/);
+  assert.match(appSource, /\.gr-window-dot\{[^}]*width:10px[^}]*height:10px[^}]*border:1px solid[^}]*border-radius:50%/);
+  assert.match(appSource, /\.gr-window-dot--red\{background:#ff5f57;border-color:#e0443e\}/);
+  assert.match(appSource, /\.gr-window-dot--amber\{background:#febc2e;border-color:#d89e24\}/);
+  assert.match(appSource, /\.gr-window-dot--green\{background:#28c840;border-color:#1aab29\}/);
+});
+
+test('macOS chrome preserves compact geometry and rounds only the floating frame top', () => {
+  assert.match(appSource, /\.gr-tripbar\{[^}]*justify-content:flex-start[^}]*gap:10px[^}]*min-height:calc\(var\(--trip-row-height\) \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(appSource, /\.gr-dates\{[^}]*margin-left:auto/);
+  assert.match(appSource, /@media \(min-width:640px\)\{[\s\S]*?\.gr-frame\{[^}]*border-radius:12px 12px 0 0/);
+  assert.doesNotMatch(appSource, /\.gr-tripbar\{[^}]*border-radius/);
+  assert.match(appSource, /\.gr-section--overview\{min-block-size:calc\(100cqb - var\(--trip-row-height\) - var\(--city-rail-height\) - env\(safe-area-inset-top, 0px\)\)\}/);
+});
+
 test('compact trip and day labels remain bilingual and fit the slim rails', () => {
   const { compactTripDates, compactDayLabel } = sharedExports(['compactTripDates', 'compactDayLabel']);
   assert.equal(compactTripDates('Jul 26 – Aug 6, 2026', 'en'), '26 Jul — 6 Aug');

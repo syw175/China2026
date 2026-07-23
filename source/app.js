@@ -58,16 +58,21 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
   overflow:hidden;position:relative}
 @media (min-width:640px){
   .gr-frame{max-width:460px;height:min(920px,94vh);margin:3vh auto;
-    box-shadow:0 30px 80px -30px oklch(20% .01 80 / .55);border:1px solid var(--ink)}
+    box-shadow:0 30px 80px -30px oklch(20% .01 80 / .55);border:1px solid var(--ink);border-radius:12px 12px 0 0}
 }
 
 /* A1 header: the trip line scrolls away; the city line stays in reach. */
-.gr-tripbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+.gr-tripbar{display:flex;align-items:center;justify-content:flex-start;gap:10px;
   min-height:calc(var(--trip-row-height) + env(safe-area-inset-top, 0px));padding:env(safe-area-inset-top, 0px) 10px 0;
   border-bottom:1px solid var(--hair2);background:var(--paper)}
+.gr-window-dots{display:flex;flex:none;align-items:center;gap:6px;pointer-events:none;user-select:none}
+.gr-window-dot{width:10px;height:10px;border:1px solid;border-radius:50%}
+.gr-window-dot--red{background:#ff5f57;border-color:#e0443e}
+.gr-window-dot--amber{background:#febc2e;border-color:#d89e24}
+.gr-window-dot--green{background:#28c840;border-color:#1aab29}
 .gr-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font:600 13px/1 var(--grotesk);letter-spacing:-.01em}
-.gr-dates{flex:none;font:500 10px/1 var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.01em}
+.gr-dates{flex:none;margin-left:auto;font:500 10px/1 var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.01em}
 .gr-cityrail{position:sticky;top:0;height:var(--city-rail-height);z-index:8;display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr)) var(--city-rail-height);align-items:stretch;
   border-bottom:1px solid var(--hair2);background:color-mix(in oklch,var(--paper) 94%,transparent);
@@ -533,7 +538,7 @@ function render(options){
   }
 
   var langLabel = state.lang==='en' ? 'Switch to Chinese' : '切换到英文';
-  var head = '<header class="gr-tripbar"><h1 class="gr-title">'+esc(data.tripTitle)+'</h1>'
+  var head = '<header class="gr-tripbar"><span class="gr-window-dots" aria-hidden="true"><span class="gr-window-dot gr-window-dot--red"></span><span class="gr-window-dot gr-window-dot--amber"></span><span class="gr-window-dot gr-window-dot--green"></span></span><h1 class="gr-title">'+esc(data.tripTitle)+'</h1>'
     + '<div class="gr-dates">'+esc(compactTripDates(data.dates,state.lang))+'</div></header>'
     + '<nav class="gr-cityrail" aria-label="'+esc(t('citiesNav',state.lang))+'">' + data.cities.map(function(c,i){
         return '<button class="gr-city'+(i===state.cityIdx?' on':'')+'" data-city="'+i+'"'+(i===state.cityIdx?' aria-current="true"':'')+'>'+esc(c.name.main)+'</button>';
