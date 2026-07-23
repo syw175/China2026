@@ -173,6 +173,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-hotelname{font:700 26px/1.2 var(--grotesk);margin-top:16px}
 .gr-addr{display:flex;gap:8px;align-items:center;margin-top:12px;font:500 12px/1.4 var(--mono);color:var(--accent)}
 .gr-doc{color:var(--accent);font-weight:600;white-space:nowrap}
+.gr-tel{color:var(--accent)}
 .gr-facts{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;
   border-top:2px solid var(--ink);border-left:2px solid var(--ink)}
 .gr-fact{padding:12px;border-right:2px solid var(--ink)}
@@ -180,7 +181,6 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-fact-k{font:600 9px/1 var(--mono);letter-spacing:.05em;color:var(--muted)}
 .gr-fact-v{font:700 16px/1.3 var(--grotesk);margin-top:6px}
 .gr-fact-v.sm{font:600 12px/1.3 var(--sans)}
-.gr-conf{margin-top:16px;font:500 11px/1.5 var(--mono);color:var(--muted)}
 .gr-note{margin-top:8px;font:400 13px/1.5 var(--sans);color:var(--body)}
 .gr-goodtoknow,.gr-nearby-sec{margin-top:24px}
 .gr-notes{margin:10px 0 0;padding-left:16px;font:400 13px/1.6 var(--sans);color:var(--body)}
@@ -371,7 +371,6 @@ function viewHotel(city){
        + (ho.confirmationUrl ? '<a class="gr-doc" href="'+esc(ho.confirmationUrl)+'" target="_blank" rel="noopener">'+esc(t('openDoc',state.lang))+' &#8594;</a>' : '—')
        + '</div></div>'
      + '</div>';
-  h += '<div class="gr-conf">CONF# '+esc(ho.confirmation)+'</div>';
   if(ho.checkInNote) h += '<div class="gr-note">'+esc(ho.checkInNote)+'</div>';
   if(ho.notes.length){
     h += '<h3 class="gr-sechead gr-goodtoknow">'+up(t('goodToKnow',state.lang))+'</h3>'
