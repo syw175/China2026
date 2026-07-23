@@ -108,6 +108,74 @@ test('Guangzhou uses the approved booking note and concise Dim Sum label', () =>
   });
 });
 
+test('Beijing Hotel uses the approved check-in guide and omits the massage reminder', () => {
+  const { loadTrip } = sharedExports(['loadTrip']);
+  const beijing = TRIP.cities.find((city) => city.id === 'bj');
+  const expectedUrl = 'https://www.icloud.com/iclouddrive/06ebJDl58O8y2HaAqOYa8fpAg#Beijing';
+  const expectedNote = {
+    en: 'Add the housekeeper’s WeChat (+86 185 1111 1664) for the host meet-up at Building 21. The unit number is 503. See the Check-In PDF for apartment entrance instructions and other details.',
+    zh: '请添加管家微信（+86 185 1111 1664），在21号楼与房东会合。房号为503。公寓入口指引及其他详情请参见「入住确认单」。',
+  };
+
+  assert.equal(beijing.hotel.confirmationUrl, expectedUrl);
+  assert.deepEqual(beijing.hotel.checkIn.note, expectedNote);
+  assert.deepEqual(beijing.hotel.notes, [
+    { en: 'See the Check-In Guide for directions to the entrance', zh: '入口路线请参见入住指南' },
+    { en: 'Confirm overnight parking for the rental car', zh: '确认租车的过夜停车安排' },
+  ]);
+
+  const formattedEnglish = loadTrip('en').cities.find((city) => city.id === 'bj').hotel;
+  const formattedChinese = loadTrip('zh').cities.find((city) => city.id === 'bj').hotel;
+  assert.equal(formattedEnglish.confirmationUrl, expectedUrl);
+  assert.equal(formattedEnglish.checkInNote, expectedNote.en);
+  assert.deepEqual(Array.from(formattedEnglish.notes), beijing.hotel.notes.map((note) => note.en));
+  assert.equal(formattedChinese.confirmationUrl, expectedUrl);
+  assert.equal(formattedChinese.checkInNote, expectedNote.zh);
+  assert.deepEqual(Array.from(formattedChinese.notes), beijing.hotel.notes.map((note) => note.zh));
+});
+
+test('only the five annotated Beijing stops lose their booking-required status', () => {
+  const { loadTrip } = sharedExports(['loadTrip']);
+  const beijing = TRIP.cities.find((city) => city.id === 'bj');
+  const correctedNames = [
+    'Rental Car Drop-off at Our Hotel',
+    'Lunch: Fudoutang No. 69, Liugou',
+    'Ta Hou Meat Pie',
+    'Jingshan Park Hike',
+    'Check Out of Apartment',
+  ];
+  const stillRequired = [
+    'Siji Minfu Roast Duck (Dongsi Shitiao Branch)',
+    'Zhengyuan Blind Massage',
+    'Badaling Great Wall',
+    'Longqing Gorge',
+    'Rental Car Return from Hotel',
+    'Tian’anmen Square',
+    'Forbidden City — Palace Museum',
+    'Flying Acrobatic Show',
+    'Temple of Heaven',
+    'Tufting at TuTu Cat DIY',
+  ];
+  const sourceItems = beijing.days.flatMap((day) => day.items);
+  const correctedItems = correctedNames.map((name) => sourceItems.find((item) => item.name.en === name));
+
+  assert.equal(correctedItems.every(Boolean), true);
+  for (const item of correctedItems) assert.equal(item.bookingRequired, false, item.name.en);
+  assert.deepEqual(
+    sourceItems.filter((item) => item.bookingRequired).map((item) => item.name.en),
+    stillRequired,
+  );
+
+  const correctedIds = new Set(correctedItems.map((item) => item.id));
+  for (const lang of ['en', 'zh']) {
+    const formattedItems = loadTrip(lang).cities.find((city) => city.id === 'bj').days.flatMap((day) => day.items);
+    for (const item of formattedItems.filter((item) => correctedIds.has(item.id))) {
+      assert.equal(item.booking, false);
+    }
+  }
+  assert.match(appSource, /\(it\.booking \? '<div class="gr-chip"/);
+});
+
 test('Hotel fact labels stay matched while compact phone links use the city accent', () => {
   assert.match(appSource, /\.gr-fact-k\{font:600 9px\/1 var\(--mono\);letter-spacing:\.05em;color:var\(--muted\)\}/);
   assert.match(appSource, /\.gr-fact-v\.sm\{font:600 12px\/1\.3 var\(--sans\)\}/);
