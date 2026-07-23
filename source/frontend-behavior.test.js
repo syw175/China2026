@@ -74,6 +74,13 @@ test('Overview fills unused scroll viewport using centralized opening chrome geo
   assert.doesNotMatch(appSource, /ResizeObserver/);
 });
 
+test('Hotel fills the scroll viewport below the sticky city rail', () => {
+  assert.match(appSource, /\.gr-scroll\{[^}]*container-type:size/);
+  assert.match(appSource, /\.gr-section--hotel\{min-block-size:calc\(100cqb - var\(--city-rail-height\)\)\}/);
+  assert.doesNotMatch(appSource, /\.gr-section--hotel\{[^}]*(?:100%|100d?vh|padding-bottom)/);
+  assert.doesNotMatch(appSource, /gr-hotel-spacer|ResizeObserver/);
+});
+
 test('trip header renders three inert macOS traffic lights before the title', () => {
   assert.match(
     appSource,
