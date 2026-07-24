@@ -75,8 +75,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-dates{flex:none;margin-left:auto;font:500 10px/1 var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.01em}
 .gr-cityrail{position:sticky;top:0;height:var(--city-rail-height);z-index:8;display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr)) var(--city-rail-height);align-items:stretch;
-  border-bottom:1px solid var(--hair2);background:color-mix(in oklch,var(--paper) 94%,transparent);
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+  border-bottom:1px solid var(--hair2);background:var(--paper)}
 .gr-city{min-width:0;padding:0 3px;border:0;border-bottom:3px solid transparent;background:transparent;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;
   font:600 12px/1 var(--grotesk);letter-spacing:-.01em}
@@ -677,6 +676,11 @@ document.addEventListener('keydown', function(e){
 
 // section/day offsets shift only on layout changes; recompute them on resize (not per scroll frame)
 window.addEventListener('resize', function(){ recomputeOffsets(); if(!navLock) updateScrollState(); });
+// web fonts swap in after first paint and change text heights — recompute once they settle so the
+// cached offsets (and thus jump targets / active-tab detection) stay accurate on first load
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(function(){ if(!root) return; recomputeOffsets(); if(!navLock) updateScrollState(); });
+}
 
 root = document.getElementById('gr-root');
 document.documentElement.lang = state.lang;
