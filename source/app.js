@@ -35,8 +35,15 @@ body{background:var(--page);font-family:var(--sans);color:var(--ink)}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer;color:inherit}
 h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control appearance */
-.gr-scroll::-webkit-scrollbar{display:none}
-.gr-scroll{scrollbar-width:none}
+/* editorial scrollbar: thin, square, hairline at rest -> accent on interaction (auto per-city) */
+.gr-scroll,.gr-sheet-body{scrollbar-width:thin;scrollbar-color:var(--hair2) transparent}
+.gr-scroll::-webkit-scrollbar,.gr-sheet-body::-webkit-scrollbar{width:10px}
+.gr-scroll::-webkit-scrollbar-track,.gr-sheet-body::-webkit-scrollbar-track{background:transparent}
+.gr-scroll::-webkit-scrollbar-thumb,.gr-sheet-body::-webkit-scrollbar-thumb{
+  background:var(--hair2);border:3px solid var(--paper);background-clip:padding-box}
+.gr-scroll::-webkit-scrollbar-thumb:hover,.gr-scroll::-webkit-scrollbar-thumb:active,
+.gr-sheet-body::-webkit-scrollbar-thumb:hover,.gr-sheet-body::-webkit-scrollbar-thumb:active{
+  background:var(--accent)}
 
 /* visible keyboard focus (ink stays legible on paper and on accent fills) */
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
@@ -72,7 +79,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-window-dot--green{background:#28c840;border-color:#1aab29}
 .gr-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font:600 13px/1 var(--grotesk);letter-spacing:-.01em}
-.gr-dates{flex:none;margin-left:auto;font:500 10px/1 var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.01em}
+.gr-dates{flex:none;margin-left:auto;font:500 10px/1 var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.01em;font-variant-numeric:tabular-nums}
 .gr-cityrail{position:sticky;top:0;height:var(--city-rail-height);z-index:8;display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr)) var(--city-rail-height);align-items:stretch;
   border-bottom:1px solid var(--hair2);background:var(--paper)}
@@ -89,7 +96,10 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-section--overview{min-block-size:calc(100cqb - var(--trip-row-height) - var(--city-rail-height) - env(safe-area-inset-top, 0px))}
 .gr-section--days{padding:0 20px 34px;border-top:2px solid var(--ink)}
 .gr-section--map,.gr-section--hotel{padding-top:28px;border-top:2px solid var(--ink)}
-.gr-section--hotel{min-block-size:calc(100cqb - var(--city-rail-height))}
+.gr-section--hotel{min-block-size:calc(100cqb - var(--city-rail-height));display:flex;flex-direction:column}
+.gr-endcap{margin-top:auto;padding-top:28px;display:flex;align-items:center;gap:10px;
+  font:600 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted3)}
+.gr-endcap::before,.gr-endcap::after{content:"";flex:1;height:2px;background:var(--ink)}
 
 /* photo frames */
 .gr-photo{position:relative;width:100%;background:var(--stripe);border:2px solid var(--ink)}
@@ -113,7 +123,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-stat:last-child{padding-right:0}
 .gr-stat:not(:last-child){border-right:1px solid var(--hair2)}
 .gr-stat-k{font:600 9px/1 var(--mono);letter-spacing:.06em;color:var(--muted)}
-.gr-stat-v{font:600 15px/1.3 var(--grotesk);margin-top:6px}
+.gr-stat-v{font:600 15px/1.3 var(--grotesk);margin-top:6px;font-variant-numeric:tabular-nums}
 .gr-eats{display:grid;grid-template-columns:1fr 1fr}
 .gr-eat{padding:12px 10px 12px 0;border-bottom:1px solid var(--hair)}
 .gr-eat-n{font:600 13px/1.3 var(--grotesk)}
@@ -135,7 +145,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-dayblock + .gr-dayblock{margin-top:34px;padding-top:32px;border-top:1px solid var(--hair2)}
 .gr-day-heading{display:grid;grid-template-columns:68px minmax(0,1fr);gap:14px;align-items:end;margin-bottom:14px}
 .gr-day-date{align-self:stretch;display:flex;align-items:flex-end;border-right:1px solid var(--hair2);padding-right:14px}
-.gr-day-number{font:700 52px/.78 var(--grotesk);letter-spacing:-.06em;color:var(--accent)}
+.gr-day-number{font:700 52px/.78 var(--grotesk);letter-spacing:-.06em;color:var(--accent);font-variant-numeric:tabular-nums}
 .gr-day-copy{min-width:0}
 .gr-day-meta-row{display:flex;align-items:center;gap:7px;min-height:18px}
 .gr-day-meta{color:var(--muted);font:600 9px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase}
@@ -145,9 +155,10 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
   background:var(--accent);color:oklch(98% .01 70);padding:4px 6px}
 .gr-dayhero{margin-top:0}
 .gr-stops{margin-top:20px;display:flex;flex-direction:column}
-.gr-stop{display:grid;grid-template-columns:50px 1fr;text-align:left;background:none;border:none;
+.gr-stop{display:grid;grid-template-columns:50px 1fr auto;text-align:left;background:none;border:none;
   border-top:1px solid var(--hair);padding:14px 0}
-.gr-stop-time{font:600 11px/1.4 var(--mono);color:var(--accent);padding-top:2px}
+.gr-stop-arrow{align-self:center;justify-self:end;padding-left:10px;font:400 18px/1 var(--grotesk);color:var(--accent)}
+.gr-stop-time{font:600 11px/1.4 var(--mono);color:var(--accent);padding-top:2px;font-variant-numeric:tabular-nums}
 .gr-stop-main{min-width:0}
 .gr-stop-type{font:600 9px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .gr-stop-name{font:700 15px/1.3 var(--grotesk);margin-top:5px}
@@ -178,7 +189,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
 .gr-fact{padding:12px;border-right:2px solid var(--ink)}
 .gr-fact.row1{border-bottom:1px solid var(--hair)}
 .gr-fact-k{font:600 9px/1 var(--mono);letter-spacing:.05em;color:var(--muted)}
-.gr-fact-v{font:700 16px/1.3 var(--grotesk);margin-top:6px}
+.gr-fact-v{font:700 16px/1.3 var(--grotesk);margin-top:6px;font-variant-numeric:tabular-nums}
 .gr-fact-v.sm{font:600 12px/1.3 var(--sans)}
 .gr-note{margin-top:8px;font:400 13px/1.5 var(--sans);color:var(--body)}
 .gr-goodtoknow,.gr-nearby-sec{margin-top:24px}
@@ -202,6 +213,7 @@ h1,h2,h3,h4{margin:0;font:inherit} /* headings are semantic; classes control app
   display:flex;align-items:flex-end;z-index:10}
 .gr-sheet{width:100%;height:82%;background:var(--sheet);border-top:3px solid var(--ink);
   display:flex;flex-direction:column;overflow:hidden}
+.gr-grabber{flex:none;width:40px;height:4px;background:var(--hair2);margin:10px auto 0}
 .gr-close-row{flex:none;display:flex;justify-content:flex-end;
   padding:calc(12px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) 12px 20px}
 .gr-close{min-width:44px;min-height:44px;background:var(--ink);color:var(--near2);border:none;font:700 13px/1 var(--mono);padding:12px 14px}
@@ -329,7 +341,8 @@ function viewDay(city, day){
         + (it.name.sub ? '<div class="gr-stop-sub">'+esc(it.name.sub)+'</div>' : '')
         + '<div class="gr-stop-hood">'+esc(it.hood.main)+'</div>'
         + (it.booking ? '<div class="gr-chip">'+esc(it.bookingLabel)+'</div>' : '')
-        + '</div></button>';
+        + '</div>'
+        + '<div class="gr-stop-arrow" aria-hidden="true">&#8250;</div></button>';
     }).join('') + '</div>';
   return h + '</div>';
 }
@@ -383,7 +396,8 @@ function viewHotel(city){
     h += '<h3 class="gr-sechead gr-nearby-sec">'+up(t('nearbyHotel',state.lang))+'</h3>'
        + '<div class="gr-nearby">' + ho.nearby.map(function(n){ return nearRow(n, false); }).join('') + '</div>';
   }
-  return h + '</div>';
+  var endLabel = city.name.main + (city.name.sub ? ' · ' + city.name.sub : '');
+  return h + '</div>' + '<div class="gr-endcap" aria-hidden="true">'+esc(endLabel)+'</div>';
 }
 
 function viewCityDocument(city){
@@ -398,6 +412,7 @@ function viewCityDocument(city){
 function overlay(stop){
   if(!stop) return '';
   var h = '<div class="gr-overlay" data-backdrop><div class="gr-sheet" role="dialog" aria-modal="true" aria-labelledby="gr-stop-title">';
+  h += '<div class="gr-grabber" aria-hidden="true"></div>';
   h += '<div class="gr-close-row"><button class="gr-close" data-close aria-label="'+esc(t('close',state.lang))+'">'+esc(t('close',state.lang))+'</button></div>';
   h += '<div class="gr-sheet-body">';
   h += stopPhoto(stop);
