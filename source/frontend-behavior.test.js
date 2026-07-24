@@ -312,8 +312,10 @@ test('Today badge is integrated into the editorial day metadata', () => {
 
 test('nested day anchors are measured in scroll-container coordinates', () => {
   assert.match(appSource, /function elementScrollOffset\(element,scroller\)\{[\s\S]*getBoundingClientRect\(\)\.top[\s\S]*scroller\.scrollTop/);
-  assert.match(appSource, /days\.map\(function\(day\)\{ return elementScrollOffset\(day,scroller\); \}\)/);
-  assert.match(appSource, /top:Math\.max\(0,elementScrollOffset\(day,scroller\)-76\)/);
+  // day offsets are measured in scroll-container coordinates once per render (cached in recomputeOffsets)
+  assert.match(appSource, /days: days\.map\(function\(d\)\{ return elementScrollOffset\(d, scroller\); \}\)/);
+  // the day jump targets that container-relative offset (minus the sticky-rail allowance)
+  assert.match(appSource, /jumpTo\(scroller, elementScrollOffset\(day,scroller\)-76\)/);
 });
 
 test('stop dialog uses a fixed-height sheet with a fixed close row and scrolling body', () => {

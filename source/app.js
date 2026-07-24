@@ -242,6 +242,10 @@ var state = { lang:loadLanguage(), cityIdx:0, activeSection:'overview', activeDa
 var root;
 var lastTrigger = null; // stop-row id that opened the dialog, for focus restore
 var scrollFrame = 0;
+var navLock = 0;          // while a tab/day jump animates, the scroll-spy is suppressed so the
+                          // active tab stays on the target instead of flickering through sections
+var cachedOffsets = null; // section/day scroll offsets, recomputed on render + resize — avoids a
+                          // per-frame getBoundingClientRect reflow in the scroll-spy
 
 function up(s){ return String(s==null?'':s).toUpperCase(); }
 function sub(o){ return o.sub ? '<div class="gr-sub">'+esc(o.sub)+'</div>' : ''; }
@@ -419,6 +423,40 @@ function elementScrollOffset(element,scroller){
 function motionBehavior(){
   return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
 }
+// Bounded, snappy programmatic scroll: a fixed ~360ms easeOutCubic instead of native
+// behavior:'smooth' (whose duration grows with distance and feels slow across the long
+// one-city document). Reduced-motion → instant. Calls onDone when it settles.
+var scrollAnim = 0; // generation counter so a newer jump supersedes an in-flight one
+function animateScrollTo(scroller, top, onDone){
+  top = Math.max(0, top);
+  var gen = ++scrollAnim;
+  if(motionBehavior()==='auto'){ scroller.scrollTop = top; if(onDone) onDone(); return; }
+  var start = scroller.scrollTop, delta = top - start, t0 = 0, dur = 360;
+  if(Math.abs(delta) < 1){ if(onDone) onDone(); return; }
+  requestAnimationFrame(function step(ts){
+    if(gen !== scrollAnim) return; // a newer jump took over — abandon this animation
+    if(!t0) t0 = ts;
+    var p = Math.min(1, (ts - t0) / dur);
+    scroller.scrollTop = start + delta * (1 - Math.pow(1 - p, 3));
+    if(p < 1) requestAnimationFrame(step); else if(onDone) onDone();
+  });
+}
+// Cache each section/day's scroll offset once (offsets are stable between renders because photo
+// frames reserve space via aspect-ratio and the day rail is position:absolute). The scroll-spy
+// then reads these numbers instead of measuring every element on every frame.
+function recomputeOffsets(){
+  var scroller = currentScroller();
+  if(!scroller){ cachedOffsets = null; return; }
+  var sections = Array.prototype.slice.call(scroller.querySelectorAll('[data-section-view]'));
+  var days = Array.prototype.slice.call(scroller.querySelectorAll('[data-day-view]'));
+  cachedOffsets = {
+    keys: sections.map(function(s){ return s.dataset.sectionView; }),
+    sections: sections.map(function(s){ return elementScrollOffset(s, scroller); }),
+    days: days.map(function(d){ return elementScrollOffset(d, scroller); })
+  };
+}
+function clearNavLock(){ navLock = 0; updateScrollState(); }
+function jumpTo(scroller, top){ navLock = 1; animateScrollTo(scroller, top, clearNavLock); }
 function captureScrollContext(){
   var scroller = currentScroller();
   if(!scroller) return null;
@@ -450,19 +488,17 @@ function updateNavigation(){
   }
 }
 function updateScrollState(){
+  if(navLock) return; // a jump is animating — leave the optimistic active tab in place
   var scroller = currentScroller();
   if(!scroller) return;
-  var sections = Array.prototype.slice.call(scroller.querySelectorAll('[data-section-view]'));
-  if(!sections.length) return;
-  var sectionOffsets = sections.map(function(section){ return elementScrollOffset(section,scroller); });
-  var sectionIdx = sectionIndexAtScroll(sectionOffsets,scroller.scrollTop,1);
-  if(scroller.scrollTop+scroller.clientHeight>=scroller.scrollHeight-2) sectionIdx=sections.length-1;
-  state.activeSection = sections[sectionIdx].dataset.sectionView;
-  if(state.activeSection==='days'){
-    var days = Array.prototype.slice.call(scroller.querySelectorAll('[data-day-view]'));
-    if(days.length){
-      state.activeDay = activeIndexAtOffset(days.map(function(day){ return elementScrollOffset(day,scroller); }),scroller.scrollTop+77);
-    }
+  if(!cachedOffsets || !cachedOffsets.sections.length) recomputeOffsets();
+  if(!cachedOffsets || !cachedOffsets.sections.length) return;
+  var scrollTop = scroller.scrollTop;
+  var sectionIdx = sectionIndexAtScroll(cachedOffsets.sections,scrollTop,1);
+  if(scrollTop+scroller.clientHeight>=scroller.scrollHeight-2) sectionIdx=cachedOffsets.sections.length-1;
+  state.activeSection = cachedOffsets.keys[sectionIdx];
+  if(state.activeSection==='days' && cachedOffsets.days.length){
+    state.activeDay = activeIndexAtOffset(cachedOffsets.days,scrollTop+77);
   }
   updateNavigation();
 }
@@ -473,32 +509,32 @@ function scheduleScrollState(){
     updateScrollState();
   });
 }
-function scrollToDay(dayIdx,behavior){
+function scrollToDay(dayIdx){
   var scroller = currentScroller();
   var day = scroller && scroller.querySelector('[data-day-view="'+dayIdx+'"]');
   if(!scroller || !day) return;
   state.activeSection='days';
   state.activeDay=dayIdx;
-  updateNavigation();
-  scroller.scrollTo({top:Math.max(0,elementScrollOffset(day,scroller)-76),behavior:behavior||motionBehavior()});
+  updateNavigation(); // optimistic: set the target tab now; the spy stays suppressed until the jump lands
+  jumpTo(scroller, elementScrollOffset(day,scroller)-76);
 }
-function scrollToSection(section,behavior){
+function scrollToSection(section){
   var scroller = currentScroller();
   if(!scroller) return;
   state.activeSection=section;
   if(section==='overview'){
     updateNavigation();
-    scroller.scrollTo({top:0,behavior:behavior||motionBehavior()});
+    jumpTo(scroller, 0);
     return;
   }
   if(section==='days'){
-    scrollToDay(0,behavior);
+    scrollToDay(0);
     return;
   }
   var target = scroller.querySelector('[data-section-view="'+section+'"]');
   if(!target) return;
   updateNavigation();
-  scroller.scrollTo({top:Math.max(0,elementScrollOffset(target,scroller)-44),behavior:behavior||motionBehavior()});
+  jumpTo(scroller, elementScrollOffset(target,scroller)-44);
 }
 function restoreScroll(options){
   var scroller = currentScroller();
@@ -553,8 +589,10 @@ function render(options){
     + '</nav>';
 
   root.innerHTML = body + viewDayRail(city) + tabs + overlay(stop);
+  navLock = 0; // a fresh render supersedes any in-flight jump
   var scroller = currentScroller();
   if(scroller) scroller.addEventListener('scroll',scheduleScrollState,{passive:true});
+  recomputeOffsets();
   restoreScroll(options||null);
   updateScrollState();
   // reveal any already-cached hero images immediately (onload won't refire)
@@ -636,6 +674,9 @@ document.addEventListener('keydown', function(e){
     else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
   }
 });
+
+// section/day offsets shift only on layout changes; recompute them on resize (not per scroll frame)
+window.addEventListener('resize', function(){ recomputeOffsets(); if(!navLock) updateScrollState(); });
 
 root = document.getElementById('gr-root');
 document.documentElement.lang = state.lang;
